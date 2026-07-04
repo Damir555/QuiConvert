@@ -1,0 +1,1 @@
+<div class="qc512-result" aria-live="polite"></div>

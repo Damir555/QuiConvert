@@ -1,0 +1,155 @@
+.qc512-tool {
+  max-width: 760px;
+  margin: 40px auto;
+  padding: 28px;
+  border-radius: 16px;
+  background: #ffffff;
+  box-shadow: 0 8px 24px rgba(20,30,50,0.08);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+}
+.qc512-tool.qc512-locked {
+  opacity: 0.92;
+}
+.qc512-header { text-align: center; }
+.qc512-title { font-size: 24px; margin: 0; color: #0b2545; }
+.qc512-subtitle { color: #5b6b80; margin-top: 8px; margin-bottom: 22px; }
+.qc512-dropzone {
+  border: 2px dashed #d7dde6;
+  border-radius: 14px;
+  padding: 34px;
+  text-align: center;
+  transition: all 180ms ease;
+  background: linear-gradient(180deg, #ffffff 0%, #fbfdff 100%);
+}
+.qc512-tool.qc512-locked .qc512-dropzone {
+  pointer-events: none;
+}
+.qc512-dropzone.qc512-dragover { border-color: #2b8cff; background: #f0f7ff; transform: translateY(-3px); }
+.qc512-drop-inner { display: flex; flex-direction: column; align-items: center; gap: 11px; }
+.qc512-icon {
+  width: 72px;
+  height: 72px;
+  border-radius: 16px;
+  background: #2b8cff;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  letter-spacing: 1px;
+}
+.qc512-drop-text { font-size: 16px; color: #344a63; margin: 6px 0; }
+.qc512-choose {
+  padding: 10px 18px;
+  border-radius: 8px;
+  background: #2b8cff;
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+.qc512-choose:disabled,
+.qc512-action:disabled,
+.qc512-split-pages:disabled,
+.qc512-email-input:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+.qc512-file-list { margin-top: 12px; }
+.qc512-file {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 8px 10px;
+  border: 1px solid #edf1f7;
+  border-radius: 8px;
+  margin-bottom: 6px;
+  color: #344a63;
+  background: #fbfdff;
+}
+.qc512-file small { color: #6b7c90; }
+.qc512-actions { margin-top: 18px; display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+.qc512-action {
+  padding: 12px 22px;
+  border-radius: 10px;
+  border: none;
+  background: #e9f2ff;
+  color: #0b2545;
+  min-width: 160px;
+  cursor: pointer;
+  transition: all 150ms ease;
+  box-shadow: 0 3px 10px rgba(15,30,60,0.04);
+}
+.qc512-action:hover { transform: translateY(-2px); }
+.qc512-primary { background: linear-gradient(90deg,#2b8cff,#2265d6); color: white; }
+.qc512-options { display: none; margin: 18px auto 0; max-width: 460px; }
+.qc512-options.qc512-visible { display: block; }
+.qc512-label { display: block; color: #0b2545; margin-bottom: 6px; font-weight: 600; }
+.qc512-split-pages, .qc512-email-input {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid #d7dde6;
+}
+.qc512-help { color: #6b7c90; font-size: 13px; margin-top: 6px; }
+.qc512-email-box { margin: 16px auto 0; max-width: 360px; }
+.qc512-limit { margin-top: 14px; text-align: center; color: #6b7c90; font-size: 13px; }
+.qc512-result { margin-top: 14px; min-height: 36px; text-align: center; }
+.qc512-message {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  line-height: 1.35;
+}
+.qc512-message-icon { font-weight: 700; }
+.qc512-message-success {
+  color: #176c2f;
+  background: #effaf2;
+  border: 1px solid #ccefd5;
+}
+.qc512-message-error {
+  color: #c0392b;
+  background: #fff5f4;
+  border: 1px solid #ffd8d2;
+}
+.qc512-message-warning {
+  color: #936300;
+  background: #fff8e5;
+  border: 1px solid #ffe4a3;
+}
+.qc512-message-info,
+.qc512-message-processing {
+  color: #2265d6;
+  background: #eef6ff;
+  border: 1px solid #cfe4ff;
+}
+.qc512-spinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid #cfe4ff;
+  border-top-color: #2265d6;
+  border-radius: 50%;
+  animation: qc512spin 0.8s linear infinite;
+}
+@keyframes qc512spin { to { transform: rotate(360deg); } }
+.qc512-download-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 11px;
+}
+.qc512-download {
+  display: inline-block;
+  padding: 11px 18px;
+  background: #28a745;
+  color: #fff;
+  border-radius: 8px;
+  text-decoration: none;
+}
+.qc512-download:hover { color: #fff; opacity: 0.9; }
+@media (max-width:640px) {
+  .qc512-tool { padding: 18px; margin: 20px; }
+  .qc512-action { width: 100%; }
+  .qc512-file { flex-direction: column; gap: 4px; }
+}
