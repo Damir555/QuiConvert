@@ -1,13 +1,25 @@
+$ErrorActionPreference = "Stop"
+
 $PluginDir = "frontend-plugin"
-$Version = "5.1.3"
-$Output = "dist/quiconvert-plugin-$Version.zip"
+$Version = "7.0.0-dev"
+$OutputDir = "dist"
+$Output = "$OutputDir/quiconvert-tools-$Version.zip"
 
-New-Item -ItemType Directory -Force -Path "dist" | Out-Null
-
-if (Test-Path $Output) {
-    Remove-Item $Output
+if (!(Test-Path $PluginDir)) {
+    throw "Plugin folder not found: $PluginDir"
 }
 
-Compress-Archive -Path "$PluginDir/*" -DestinationPath $Output
+if (!(Test-Path "$PluginDir/quiconvert-plugin.php")) {
+    throw "Main plugin file not found: $PluginDir/quiconvert-plugin.php"
+}
+
+New-Item -ItemType Directory -Force -Path $OutputDir | Out-Null
+
+if (Test-Path $Output) {
+    Remove-Item $Output -Force
+}
+
+Compress-Archive -Path "$PluginDir" -DestinationPath $Output -Force
 
 Write-Host "Built $Output"
+
