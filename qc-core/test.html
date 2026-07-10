@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>QuiConvert Core Test</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 40px;
+        }
+
+        #quiconvert-app {
+            max-width: 700px;
+        }
+
+        .qc-upload-card {
+            border: 2px dashed #999;
+            padding: 60px;
+            text-align: center;
+            cursor: pointer;
+            margin-bottom: 20px;
+            min-height: 180px;
+        }
+
+        .qc-drag-over {
+            border-color: #333;
+            background: #f3f3f3;
+        }
+
+        .qc-file-list {
+            padding-left: 20px;
+        }
+
+        .qc-file-item {
+            margin-bottom: 8px;
+        }
+
+        .qc-file-remove {
+            margin-left: 12px;
+        }
+    </style>
+</head>
+<body>
+
+<div id="quiconvert-app">
+    <div class="qc-upload-card">
+        <p><strong>Drag & drop PDF files here</strong></p>
+        <p>or choose files manually</p>
+        <input class="qc-file-input" type="file" multiple accept="application/pdf">
+    </div>
+
+    <div class="qc-file-list-container"></div>
+    <button class="qc-process-button" type="button">
+    Process PDF
+    </button>
+
+<div class="qc-result-container"></div>
+
+</div>
+
+<script type="module">
+    import { initQuiConvertCore } from './app/main.js';
+
+    initQuiConvertCore({
+        tool: 'merge',
+        apiBase: 'https://example.com',
+        apiKey: 'test-key'
+    });
+</script>
+
+</body>
+</html>
