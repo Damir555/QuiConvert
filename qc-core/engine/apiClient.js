@@ -18,5 +18,24 @@ export async function postPdfTool(config, endpoint, formData) {
         throw new Error(`Backend error: ${response.status}`);
     }
 
-    return await response.blob();
+    const blob = await response.blob();
+
+    const contentDisposition = response.headers.get('Content-Disposition');
+
+    let filename = 'quiconvert-result.pdf';
+
+    if (contentDisposition) {
+        const filenameMatch = contentDisposition.match(
+            /filename\*?=(?:UTF-8''|["']?)([^;"']+)/
+        );
+
+        if (filenameMatch?.[1]) {
+            filename = decodeURIComponent(filenameMatch[1].replace(/["']/g, ''));
+        }
+    }
+
+    return {
+        blob,
+        filename
+    };
 }

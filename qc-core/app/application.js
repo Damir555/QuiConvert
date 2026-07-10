@@ -17,12 +17,22 @@ export function createApplication(config, root) {
         showStatus(resultContainer, 'Processing...');
 
         try {
-            const resultBlob = await dispatchTool(config, options);
-            showDownload(resultContainer, resultBlob, 'quiconvert-result.pdf');
-            return resultBlob;
+            const result = await dispatchTool(config, options);
+
+            showDownload(
+                resultContainer,
+                result.blob,
+                result.filename
+            );
+
+            return result;
         } catch (error) {
             console.error('[QuiConvert Core] Processing failed:', error);
-            showError(resultContainer, error.message || 'Processing failed.');
+            showError(
+                resultContainer,
+                error.message || 'Processing failed.'
+            );
+
             return null;
         }
     }
