@@ -65,5 +65,11 @@ export const TOOL_SCHEMAS = {
                 ]
             }
         ]
-    }
+    },
+
+    compress: {
+        title: 'Compress PDF',
+
+        fields: []
+}
 };
