@@ -1,23 +1,53 @@
 import { createUploadEngine } from '../engine/uploadEngine.js';
 import { dispatchTool } from '../engine/dispatcher.js';
+
 import { bindProcessButton } from '../ui/processView.js';
 import { showStatus, showDownload } from '../ui/resultView.js';
 import { showError } from '../ui/errorView.js';
+import { renderToolOptions } from '../ui/toolOptionsView.js';
 
 export function createApplication(config, root) {
     const uploadEngine = createUploadEngine({
         root
     });
 
-    const resultContainer = root.querySelector('.qc-result-container');
+    const toolOptionsContainer = root.querySelector(
+        '.qc-tool-options-container'
+    );
 
-    async function run(options = {}) {
-        console.log('[QuiConvert Core] Running tool:', config.tool);
+    const resultContainer = root.querySelector(
+        '.qc-result-container'
+    );
 
-        showStatus(resultContainer, 'Processing...');
+    const toolOptionsView = toolOptionsContainer
+        ? renderToolOptions(toolOptionsContainer, config.tool)
+        : null;
+
+    async function run() {
+        console.log(
+            '[QuiConvert Core] Running tool:',
+            config.tool
+        );
+
+        const options = toolOptionsView?.getOptions
+            ? toolOptionsView.getOptions()
+            : {};
+
+        console.log(
+            '[QuiConvert Core] Tool options:',
+            options
+        );
+
+        showStatus(
+            resultContainer,
+            'Processing...'
+        );
 
         try {
-            const result = await dispatchTool(config, options);
+            const result = await dispatchTool(
+                config,
+                options
+            );
 
             showDownload(
                 resultContainer,
@@ -27,7 +57,11 @@ export function createApplication(config, root) {
 
             return result;
         } catch (error) {
-            console.error('[QuiConvert Core] Processing failed:', error);
+            console.error(
+                '[QuiConvert Core] Processing failed:',
+                error
+            );
+
             showError(
                 resultContainer,
                 error.message || 'Processing failed.'
@@ -37,12 +71,16 @@ export function createApplication(config, root) {
         }
     }
 
-    bindProcessButton(root, () => run());
+    bindProcessButton(
+        root,
+        run
+    );
 
     return {
         config,
         root,
         uploadEngine,
+        toolOptionsView,
         run
     };
 }

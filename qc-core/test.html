@@ -39,23 +39,49 @@
         .qc-file-remove {
             margin-left: 12px;
         }
+
+        .qc-tool-options-container {
+            margin: 24px 0;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+
+        .qc-process-button {
+            margin-top: 8px;
+        }
+
+        .qc-result-container {
+            margin-top: 20px;
+        }
     </style>
 </head>
+
 <body>
 
 <div id="quiconvert-app">
+
     <div class="qc-upload-card">
         <p><strong>Drag & drop PDF files here</strong></p>
         <p>or choose files manually</p>
-        <input class="qc-file-input" type="file" multiple accept="application/pdf">
+
+        <input
+            class="qc-file-input"
+            type="file"
+            multiple
+            accept="application/pdf"
+        >
     </div>
 
     <div class="qc-file-list-container"></div>
+
+    <div class="qc-tool-options-container"></div>
+
     <button class="qc-process-button" type="button">
-    Process PDF
+        Process PDF
     </button>
 
-<div class="qc-result-container"></div>
+    <div class="qc-result-container"></div>
 
 </div>
 
