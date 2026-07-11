@@ -1,9 +1,11 @@
 import { runMergeTool } from './mergeTool.js';
 import { runSplitTool } from './splitTool.js';
+import { runRotateTool } from './rotateTool.js';
 
 const tools = {
     merge: runMergeTool,
-    split: runSplitTool
+    split: runSplitTool,
+    rotate: runRotateTool
 };
 
 export function getTool(toolName) {

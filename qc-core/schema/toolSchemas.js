@@ -37,5 +37,33 @@ export const TOOL_SCHEMAS = {
                 }
             }
         ]
+    },
+
+    rotate: {
+        title: 'Rotate PDF',
+
+        fields: [
+            {
+                id: 'rotation',
+                type: 'radio',
+                label: 'Rotation angle',
+
+                options: [
+                    {
+                        value: '90',
+                        label: '90° clockwise',
+                        checked: true
+                    },
+                    {
+                        value: '180',
+                        label: '180°'
+                    },
+                    {
+                        value: '270',
+                        label: '270° clockwise'
+                    }
+                ]
+            }
+        ]
     }
 };
