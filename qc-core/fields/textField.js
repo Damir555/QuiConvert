@@ -11,7 +11,7 @@ export function renderTextField(field) {
     const input = document.createElement('input');
     input.id = inputId;
     input.className = `qc-${field.id}-input`;
-    input.type = 'text';
+    input.type = field.inputType || 'text';
     input.placeholder = field.placeholder || '';
 
     container.appendChild(label);

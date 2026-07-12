@@ -71,5 +71,19 @@ export const TOOL_SCHEMAS = {
         title: 'Compress PDF',
 
         fields: []
+},
+
+    protect: {
+    title: 'Protect PDF',
+
+    fields: [
+        {
+            id: 'password',
+            type: 'text',
+            inputType: 'password',
+            label: 'Password',
+            placeholder: 'Enter a password'
+        }
+    ]
 }
 };
