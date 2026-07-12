@@ -1,24 +1,23 @@
-import { getFiles } from '../engine/fileState.js';
 import { postPdfTool } from '../engine/apiClient.js';
 
+import {
+    requireSingleFile,
+    createSingleFileFormData,
+    requireTextOption
+} from './toolHelpers.js';
+
 export async function runUnlockTool(config, options = {}) {
-    const files = getFiles();
+    const file = requireSingleFile();
 
-    if (!files.length) {
-        throw new Error('Please select one PDF file.');
-    }
+    const password = requireTextOption(
+        options,
+        'password',
+        'Please enter a password.'
+    );
 
-    const password = (options.password || '').trim();
-
-    if (!password) {
-        throw new Error('Please enter a password.');
-    }
-
-    const formData = new FormData();
-
-    formData.append(
-        config.uploadFieldName,
-        files[0]
+    const formData = createSingleFileFormData(
+        config,
+        file
     );
 
     formData.append(

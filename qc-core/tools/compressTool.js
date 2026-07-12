@@ -1,18 +1,16 @@
-import { getFiles } from '../engine/fileState.js';
 import { postPdfTool } from '../engine/apiClient.js';
 
+import {
+    requireSingleFile,
+    createSingleFileFormData
+} from './toolHelpers.js';
+
 export async function runCompressTool(config) {
-    const files = getFiles();
+    const file = requireSingleFile();
 
-    if (!files.length) {
-        throw new Error('Please select one PDF file.');
-    }
-
-    const formData = new FormData();
-
-    formData.append(
-        config.uploadFieldName,
-        files[0]
+    const formData = createSingleFileFormData(
+        config,
+        file
     );
 
     return await postPdfTool(
