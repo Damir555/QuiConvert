@@ -110,5 +110,72 @@ export const TOOL_SCHEMAS = {
             }
         }
     ]
+},
+
+    watermark: {
+    title: 'Watermark PDF',
+
+    fields: [
+        {
+            id: 'text',
+            type: 'text',
+            label: 'Watermark text',
+            placeholder: 'Enter watermark text'
+        },
+
+        {
+            id: 'color',
+            type: 'radio',
+            label: 'Color',
+
+            options: [
+                {
+                    value: 'gray',
+                    label: 'Gray',
+                    checked: true
+                },
+                {
+                    value: 'black',
+                    label: 'Black'
+                },
+                {
+                    value: 'red',
+                    label: 'Red'
+                }
+            ]
+        },
+
+        {
+            id: 'size',
+            type: 'radio',
+            label: 'Font size',
+
+            options: [
+                {
+                    value: 'small',
+                    label: 'Small'
+                },
+                {
+                    value: 'medium',
+                    label: 'Medium'
+                },
+                {
+                    value: 'large',
+                    label: 'Large',
+                    checked: true
+                }
+            ]
+        },
+
+        {
+            id: 'opacity',
+            type: 'range',
+            label: 'Opacity',
+            min: 0.1,
+            max: 1,
+            step: 0.05,
+            defaultValue: 0.25
+        }
+    ]
 }
 };
