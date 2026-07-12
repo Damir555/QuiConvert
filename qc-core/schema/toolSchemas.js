@@ -82,7 +82,32 @@ export const TOOL_SCHEMAS = {
             type: 'text',
             inputType: 'password',
             label: 'Password',
-            placeholder: 'Enter a password'
+            placeholder: 'Enter a password',
+            required: true,
+            minLength: 4,
+            messages: {
+                required: 'Please enter a password.',
+                minLength: 'Password must contain at least 4 characters.'
+            }
+        }
+    ]
+},
+
+    unlock: {
+    title: 'Unlock PDF',
+
+    fields: [
+        {
+            id: 'password',
+            type: 'text',
+            inputType: 'password',
+            label: 'Password',
+            placeholder: 'Enter PDF password',
+            required: true,
+            minLength: 1,
+            messages: {
+                required: 'Please enter the PDF password.'
+            }
         }
     ]
 }

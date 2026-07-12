@@ -3,13 +3,15 @@ import { runSplitTool } from './splitTool.js';
 import { runRotateTool } from './rotateTool.js';
 import { runCompressTool } from './compressTool.js';
 import { runProtectTool } from './protectTool.js';
+import { runUnlockTool } from './unlockTool.js';
 
 const tools = {
     merge: runMergeTool,
     split: runSplitTool,
     rotate: runRotateTool,
     compress: runCompressTool,
-    protect: runProtectTool
+    protect: runProtectTool,
+    unlock: runUnlockTool
 };
 
 export function getTool(toolName) {
