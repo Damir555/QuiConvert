@@ -1,25 +1,29 @@
 $ErrorActionPreference = "Stop"
 
-$PluginDir = "frontend-plugin"
-$Version = "7.0.0-dev"
-$OutputDir = "dist"
-$Output = "$OutputDir/quiconvert-tools-$Version.zip"
+$Root = "D:\QuiConvert"
+$Source = "$Root\frontend-plugin"
+$Build = "$Root\build\quiconvert-tools-dev"
+$Dist = "$Root\dist"
+$Zip = "$Dist\quiconvert-tools-dev.zip"
 
-if (!(Test-Path $PluginDir)) {
-    throw "Plugin folder not found: $PluginDir"
+if (Test-Path "$Root\build") {
+    Remove-Item "$Root\build" -Recurse -Force
 }
 
-if (!(Test-Path "$PluginDir/quiconvert-plugin.php")) {
-    throw "Main plugin file not found: $PluginDir/quiconvert-plugin.php"
+if (!(Test-Path $Dist)) {
+    New-Item -ItemType Directory -Path $Dist | Out-Null
 }
 
-New-Item -ItemType Directory -Force -Path $OutputDir | Out-Null
-
-if (Test-Path $Output) {
-    Remove-Item $Output -Force
+if (Test-Path $Zip) {
+    Remove-Item $Zip -Force
 }
 
-Compress-Archive -Path "$PluginDir" -DestinationPath $Output -Force
+New-Item -ItemType Directory -Path $Build | Out-Null
 
-Write-Host "Built $Output"
+Copy-Item "$Source\*" $Build -Recurse -Force
+
+Compress-Archive -Path $Build -DestinationPath $Zip -Force
+
+Write-Host "Built:"
+Write-Host $Zip
 

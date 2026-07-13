@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>QuiConvert Page Order State Test</title>
+</head>
+
+<body>
+    <h1>Page Order State Test</h1>
+
+    <button id="initialize" type="button">
+        Initialize 5 pages
+    </button>
+
+    <button id="move" type="button">
+        Move page 5 to first
+    </button>
+
+    <button id="reset" type="button">
+        Reset
+    </button>
+
+    <pre id="output">No state yet.</pre>
+
+    <script type="module">
+        import {
+            initializePageOrder,
+            getPageOrder,
+            movePage,
+            resetPageOrder,
+            serializePageOrder
+        } from '../engine/pageOrderState.js';
+
+        const output = document.querySelector('#output');
+
+        document
+            .querySelector('#initialize')
+            .addEventListener('click', () => {
+                initializePageOrder(5);
+                renderState();
+            });
+
+        document
+            .querySelector('#move')
+            .addEventListener('click', () => {
+                movePage(4, 0);
+                renderState();
+            });
+
+        document
+            .querySelector('#reset')
+            .addEventListener('click', () => {
+                resetPageOrder();
+                renderState();
+            });
+
+        function renderState() {
+            output.textContent = JSON.stringify(
+                {
+                    order: getPageOrder(),
+                    serialized: serializePageOrder()
+                },
+                null,
+                2
+            );
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,494 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>QuiConvert PDF Renderer Test</title>
+
+    <style>
+        body {
+            margin: 0;
+            padding: 40px;
+            font-family: Arial, sans-serif;
+            background: #f5f5f5;
+        }
+
+        .qc-test-panel {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 24px;
+            background: #ffffff;
+            border: 1px solid #dddddd;
+            border-radius: 10px;
+        }
+
+        .qc-test-controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        .qc-test-render-button {
+            padding: 9px 16px;
+            cursor: pointer;
+        }
+
+        .qc-test-render-button:disabled {
+            cursor: wait;
+            opacity: 0.6;
+        }
+
+        .qc-test-status {
+            margin-bottom: 16px;
+            font-weight: 600;
+        }
+
+        .qc-test-error {
+            color: #b00020;
+        }
+
+        .qc-thumbnail-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            align-items: flex-start;
+            min-height: 200px;
+            padding: 20px;
+            border: 1px solid #cccccc;
+            background: #fafafa;
+        }
+
+        .qc-thumbnail-card {
+            padding: 10px;
+            border: 1px solid #cccccc;
+            border-radius: 6px;
+            background: #ffffff;
+            cursor: grab;
+            user-select: none;
+        }
+
+        .qc-thumbnail-card:active {
+            cursor: grabbing;
+        }
+
+        .qc-thumbnail-card.qc-dragging {
+            opacity: 0.45;
+        }
+
+        .qc-pdf-thumbnail-canvas {
+            display: block;
+            max-width: 100%;
+            border: 1px solid #999999;
+            pointer-events: none;
+        }
+
+        .qc-thumbnail-label {
+            margin-top: 8px;
+            text-align: center;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .qc-thumbnail-controls {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        .qc-thumbnail-controls button {
+            min-width: 36px;
+            padding: 5px 8px;
+            cursor: pointer;
+        }
+
+        .qc-page-order-output {
+            padding: 14px;
+            overflow-wrap: anywhere;
+            border: 1px solid #cccccc;
+            background: #f7f7f7;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="qc-test-panel">
+    <h1>PDF Renderer Test</h1>
+
+    <div class="qc-test-controls">
+        <input
+            class="qc-test-file-input"
+            type="file"
+            accept="application/pdf"
+        >
+
+        <button
+            class="qc-test-render-button"
+            type="button"
+        >
+            Render all pages
+        </button>
+    </div>
+
+    <div class="qc-test-status">
+        Select a PDF file.
+    </div>
+
+    <div class="qc-thumbnail-container"></div>
+
+    <h2>Current page order</h2>
+
+    <pre class="qc-page-order-output">No page order yet.</pre>
+</div>
+
+<script type="module">
+    import {
+        getPdfInfo,
+        renderAllPdfPageThumbnails
+    } from '../renderers/pdfRenderer.js';
+
+    import {
+        initializePageOrder,
+        setPageOrder,
+        getPageOrder,
+        movePage,
+        resetPageOrder,
+        serializePageOrder
+    } from '../engine/pageOrderState.js';
+
+    const fileInput = document.querySelector(
+        '.qc-test-file-input'
+    );
+
+    const renderButton = document.querySelector(
+        '.qc-test-render-button'
+    );
+
+    const statusContainer = document.querySelector(
+        '.qc-test-status'
+    );
+
+    const thumbnailContainer = document.querySelector(
+        '.qc-thumbnail-container'
+    );
+
+    const pageOrderOutput = document.querySelector(
+        '.qc-page-order-output'
+    );
+
+    let draggedCard = null;
+
+    renderButton.addEventListener('click', async () => {
+        const file = fileInput.files?.[0];
+
+        if (!file) {
+            showError('Please select a PDF file.');
+            return;
+        }
+
+        renderButton.disabled = true;
+
+        statusContainer.className = 'qc-test-status';
+        statusContainer.textContent = 'Rendering...';
+
+        thumbnailContainer.innerHTML = '';
+        pageOrderOutput.textContent =
+            'Preparing page order...';
+
+        resetPageOrder();
+
+        try {
+            const {
+                pdfDocument,
+                pageCount
+            } = await getPdfInfo(file);
+
+            initializePageOrder(pageCount);
+
+            const thumbnails =
+                await renderAllPdfPageThumbnails(
+                    pdfDocument,
+                    {
+                        scale: 0.3
+                    }
+                );
+
+            thumbnails.forEach((thumbnail) => {
+                const pageCard =
+                    createThumbnailCard(thumbnail);
+
+                thumbnailContainer.appendChild(pageCard);
+            });
+
+            refreshPageOrderDisplay();
+
+            statusContainer.textContent =
+                `Rendered ${pageCount} pages.`;
+
+            console.log(
+                '[PDF Renderer Test] Success:',
+                {
+                    pageCount,
+                    renderedThumbnails:
+                        thumbnails.length
+                }
+            );
+        } catch (error) {
+            console.error(
+                '[PDF Renderer Test] Failed:',
+                error
+            );
+
+            resetPageOrder();
+
+            pageOrderOutput.textContent =
+                'No page order available.';
+
+            showError(
+                error.message ||
+                'PDF rendering failed.'
+            );
+        } finally {
+            renderButton.disabled = false;
+        }
+    });
+
+    function createThumbnailCard(thumbnail) {
+        const pageCard =
+            document.createElement('div');
+
+        pageCard.className =
+            'qc-thumbnail-card';
+
+        pageCard.draggable = true;
+
+        pageCard.dataset.pageNumber = String(
+            thumbnail.pageNumber
+        );
+
+        const pageLabel =
+            document.createElement('div');
+
+        pageLabel.className =
+            'qc-thumbnail-label';
+
+        pageLabel.textContent =
+            `Page ${thumbnail.pageNumber}`;
+
+        const controls =
+            document.createElement('div');
+
+        controls.className =
+            'qc-thumbnail-controls';
+
+        const moveLeftButton =
+            document.createElement('button');
+
+        moveLeftButton.type = 'button';
+        moveLeftButton.textContent = '←';
+        moveLeftButton.title = 'Move page left';
+
+        moveLeftButton.addEventListener(
+            'click',
+            () => {
+                moveCard(pageCard, -1);
+            }
+        );
+
+        const moveRightButton =
+            document.createElement('button');
+
+        moveRightButton.type = 'button';
+        moveRightButton.textContent = '→';
+        moveRightButton.title = 'Move page right';
+
+        moveRightButton.addEventListener(
+            'click',
+            () => {
+                moveCard(pageCard, 1);
+            }
+        );
+
+        controls.appendChild(moveLeftButton);
+        controls.appendChild(moveRightButton);
+
+        pageCard.appendChild(thumbnail.canvas);
+        pageCard.appendChild(pageLabel);
+        pageCard.appendChild(controls);
+
+        pageCard.addEventListener(
+            'dragstart',
+            handleDragStart
+        );
+
+        pageCard.addEventListener(
+            'dragover',
+            handleDragOver
+        );
+
+        pageCard.addEventListener(
+            'drop',
+            handleDrop
+        );
+
+        pageCard.addEventListener(
+            'dragend',
+            handleDragEnd
+        );
+
+        return pageCard;
+    }
+
+    function moveCard(pageCard, direction) {
+        const cards = Array.from(
+            thumbnailContainer.querySelectorAll(
+                '.qc-thumbnail-card'
+            )
+        );
+
+        const fromIndex =
+            cards.indexOf(pageCard);
+
+        const toIndex =
+            fromIndex + direction;
+
+        if (
+            fromIndex < 0 ||
+            toIndex < 0 ||
+            toIndex >= cards.length
+        ) {
+            return;
+        }
+
+        movePage(fromIndex, toIndex);
+
+        if (direction < 0) {
+            thumbnailContainer.insertBefore(
+                pageCard,
+                cards[toIndex]
+            );
+        } else {
+            thumbnailContainer.insertBefore(
+                cards[toIndex],
+                pageCard
+            );
+        }
+
+        refreshPageOrderDisplay();
+    }
+
+    function handleDragStart(event) {
+        draggedCard = event.currentTarget;
+
+        draggedCard.classList.add(
+            'qc-dragging'
+        );
+
+        event.dataTransfer.effectAllowed =
+            'move';
+
+        event.dataTransfer.setData(
+            'text/plain',
+            draggedCard.dataset.pageNumber || ''
+        );
+    }
+
+    function handleDragOver(event) {
+        event.preventDefault();
+
+        event.dataTransfer.dropEffect =
+            'move';
+
+        const targetCard =
+            event.currentTarget;
+
+        if (
+            !draggedCard ||
+            targetCard === draggedCard
+        ) {
+            return;
+        }
+
+        const targetRect =
+            targetCard.getBoundingClientRect();
+
+        const insertAfter =
+            event.clientX >
+            targetRect.left +
+            targetRect.width / 2;
+
+        if (insertAfter) {
+            targetCard.after(draggedCard);
+        } else {
+            targetCard.before(draggedCard);
+        }
+    }
+
+    function handleDrop(event) {
+        event.preventDefault();
+
+        syncPageOrderFromDom();
+    }
+
+    function handleDragEnd() {
+        if (draggedCard) {
+            draggedCard.classList.remove(
+                'qc-dragging'
+            );
+        }
+
+        draggedCard = null;
+
+        syncPageOrderFromDom();
+    }
+
+    function syncPageOrderFromDom() {
+        const cards = Array.from(
+            thumbnailContainer.querySelectorAll(
+                '.qc-thumbnail-card'
+            )
+        );
+
+        const nextOrder = cards.map(
+            (card) =>
+                Number(
+                    card.dataset.pageNumber
+                )
+        );
+
+        setPageOrder(nextOrder);
+
+        refreshPageOrderDisplay();
+    }
+
+    function refreshPageOrderDisplay() {
+        const order = getPageOrder();
+
+        pageOrderOutput.textContent =
+            serializePageOrder();
+
+        console.log(
+            '[Page Order] Updated:',
+            order
+        );
+    }
+
+    function showError(message) {
+        statusContainer.className =
+            'qc-test-status qc-test-error';
+
+        statusContainer.textContent =
+            message;
+    }
+</script>
+
+</body>
+</html>

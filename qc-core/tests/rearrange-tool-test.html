@@ -1,0 +1,162 @@
+<!doctype html>
+
+<html lang="en"> <head> <meta charset="UTF-8">
+
+<meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+>
+
+<title>QuiConvert Rearrange Tool Test</title>
+
+<style>
+    body {
+        margin: 0;
+        padding: 40px;
+        font-family: Arial, sans-serif;
+        background: #f5f5f5;
+    }
+
+    .qc-test-panel {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 24px;
+        background: #ffffff;
+        border: 1px solid #dddddd;
+        border-radius: 10px;
+    }
+
+    .qc-test-controls {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        align-items: center;
+        margin-bottom: 24px;
+    }
+
+    .qc-test-button {
+        padding: 9px 16px;
+        cursor: pointer;
+    }
+
+    .qc-test-button:disabled {
+        cursor: wait;
+        opacity: 0.6;
+    }
+
+    .qc-test-status {
+        margin-bottom: 16px;
+        font-weight: 600;
+    }
+
+    .qc-test-error {
+        color: #b00020;
+    }
+
+    .qc-thumbnail-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 16px;
+        align-items: flex-start;
+        min-height: 200px;
+        padding: 20px;
+        border: 1px solid #cccccc;
+        background: #fafafa;
+    }
+
+    .qc-thumbnail-card {
+        padding: 10px;
+        border: 1px solid #cccccc;
+        border-radius: 6px;
+        background: #ffffff;
+        cursor: grab;
+        user-select: none;
+    }
+
+    .qc-thumbnail-card:active {
+        cursor: grabbing;
+    }
+
+    .qc-thumbnail-card.qc-dragging {
+        opacity: 0.45;
+    }
+
+    .qc-pdf-thumbnail-canvas {
+        display: block;
+        max-width: 100%;
+        border: 1px solid #999999;
+        pointer-events: none;
+    }
+
+    .qc-thumbnail-label {
+        margin-top: 8px;
+        text-align: center;
+        font-size: 14px;
+        font-weight: 600;
+    }
+
+    .qc-thumbnail-controls {
+        display: flex;
+        justify-content: center;
+        gap: 8px;
+        margin-top: 8px;
+    }
+
+    .qc-thumbnail-controls button {
+        min-width: 36px;
+        padding: 5px 8px;
+        cursor: pointer;
+    }
+
+    .qc-page-order-output {
+        padding: 14px;
+        overflow-wrap: anywhere;
+        border: 1px solid #cccccc;
+        background: #f7f7f7;
+    }
+</style>
+
+</head>
+
+<body>
+
+<div class="qc-test-panel"> <h1>Rearrange Tool Test</h1>
+
+<div class="qc-test-controls">
+    <input
+        class="qc-test-file-input"
+        type="file"
+        accept="application/pdf"
+    >
+
+    <button
+        class="qc-test-render-button qc-test-button"
+        type="button"
+    >
+        Load PDF pages
+    </button>
+
+    <button
+        class="qc-test-reset-button qc-test-button"
+        type="button"
+    >
+        Reset preview
+    </button>
+</div>
+
+<div class="qc-test-status">
+    Select a PDF file.
+</div>
+
+<div class="qc-thumbnail-container"></div>
+
+<h2>Current page order</h2>
+
+<pre class="qc-page-order-output">No page order yet.</pre>
+
+</div>
+
+<script type="module"> import { initializeRearrangePreview, getRearrangePreviewState, destroyRearrangePreview } from '../tools/rearrangeTool.js'; const fileInput = document.querySelector( '.qc-test-file-input' ); const renderButton = document.querySelector( '.qc-test-render-button' ); const resetButton = document.querySelector( '.qc-test-reset-button' ); const statusContainer = document.querySelector( '.qc-test-status' ); const thumbnailContainer = document.querySelector( '.qc-thumbnail-container' ); const pageOrderOutput = document.querySelector( '.qc-page-order-output' ); renderButton.addEventListener('click', async () => { const file = fileInput.files?.[0]; if (!file) { showError('Please select a PDF file.'); return; } renderButton.disabled = true; resetButton.disabled = true; statusContainer.className = 'qc-test-status'; statusContainer.textContent = 'Rendering PDF pages...'; pageOrderOutput.textContent = 'Preparing page order...'; try { const result = await initializeRearrangePreview( file, thumbnailContainer, { scale: 0.3, onChange(state) { pageOrderOutput.textContent = state.serializedPageOrder; console.log( '[Rearrange Tool Test] Page order changed:', state ); } } ); statusContainer.textContent = `Rendered ${result.pageCount} pages. ` + 'Drag pages or use the arrow buttons.'; console.log( '[Rearrange Tool Test] Preview initialized:', result ); } catch (error) { console.error( '[Rearrange Tool Test] Failed:', error ); destroyRearrangePreview(); pageOrderOutput.textContent = 'No page order available.'; showError( error.message || 'Rearrange preview failed.' ); } finally { renderButton.disabled = false; resetButton.disabled = false; } }); resetButton.addEventListener('click', () => { destroyRearrangePreview(); fileInput.value = ''; statusContainer.className = 'qc-test-status'; statusContainer.textContent = 'Select a PDF file.'; pageOrderOutput.textContent = 'No page order yet.'; console.log( '[Rearrange Tool Test] Preview destroyed:', getRearrangePreviewState() ); }); function showError(message) { statusContainer.className = 'qc-test-status qc-test-error'; statusContainer.textContent = message; } </script>
+
+</body> 
+</html>
