@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Workspace State Test</title>
+</head>
+<body>
+
+    <h1>Workspace State Test</h1>
+    <pre id="output"></pre>
+
+    <script type="module">
+        import { WorkspaceEngine } from "../src/workspace/workspaceEngine.js";
+        import { WorkspaceState } from "../src/workspace/workspaceState.js";
+
+        const output = document.querySelector("#output");
+
+        function log(message) {
+            output.textContent += `${message}\n`;
+            console.log(message);
+        }
+
+        const workspace = new WorkspaceEngine();
+
+        workspace.initialize();
+        log(`Initial state: ${workspace.getState()}`);
+
+        workspace.setState(WorkspaceState.READY);
+        log(`After upload: ${workspace.getState()}`);
+
+        workspace.setState(WorkspaceState.PROCESSING);
+        log(`During processing: ${workspace.getState()}`);
+
+        workspace.setState(WorkspaceState.SUCCESS);
+        log(`After processing: ${workspace.getState()}`);
+
+        workspace.reset();
+        log(`After reset: ${workspace.getState()}`);
+
+        try {
+            workspace.setState(WorkspaceState.SUCCESS);
+        } catch (error) {
+            log(`Expected error: ${error.message}`);
+        }
+    </script>
+
+</body>
+</html>
