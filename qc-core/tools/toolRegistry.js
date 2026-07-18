@@ -9,6 +9,10 @@ import { runRearrangeTool } from './rearrangeTool.js';
 import {runDeletePagesTool } from './deletePagesTool.js';
 import {runDuplicatePagesTool} from './duplicatePagesTool.js';
 import {runExtractPagesTool} from './extractPagesTool.js';
+import {runReversePagesTool} from './reversePagesTool.js';
+import {runPageNumbersTool} from './pageNumbersTool.js';
+import {runImageToPdfTool} from './imageToPdfTool.js';
+import {runPdfToImagesTool} from './pdfToImagesTool.js';
 
 
 
@@ -24,6 +28,10 @@ const tools = {
     'delete-pages': runDeletePagesTool,
     'duplicate-pages': runDuplicatePagesTool,
     'extract-pages': runExtractPagesTool,
+    'reverse-pages': runReversePagesTool,
+    'page-numbers': runPageNumbersTool,
+    'image-to-pdf': runImageToPdfTool,
+    'pdf-to-images': runPdfToImagesTool
 
 };
 

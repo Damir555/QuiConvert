@@ -1,27 +1,57 @@
-import { createUploadEngine } from '../engine/uploadEngine.js';
-import { dispatchTool } from '../engine/dispatcher.js';
+import {
+    createUploadEngine
+} from '../engine/uploadEngine.js';
 
-import { bindProcessButton } from '../ui/processView.js';
-import { showStatus, showDownload } from '../ui/resultView.js';
-import { showError } from '../ui/errorView.js';
-import { renderToolOptions } from '../ui/toolOptionsView.js';
+import {
+    dispatchTool
+} from '../engine/dispatcher.js';
 
-export function createApplication(config, root) {
-    const uploadEngine = createUploadEngine({
-        root
-    });
+import {
+    bindProcessButton
+} from '../ui/processView.js';
 
-    const toolOptionsContainer = root.querySelector(
-        '.qc-tool-options-container'
-    );
+import {
+    showStatus,
+    showDownload
+} from '../ui/resultView.js';
 
-    const resultContainer = root.querySelector(
-        '.qc-result-container'
-    );
+import {
+    showError
+} from '../ui/errorView.js';
 
-    const toolOptionsView = toolOptionsContainer
-        ? renderToolOptions(toolOptionsContainer, config.tool)
-        : null;
+import {
+    renderToolOptions
+} from '../ui/toolOptionsView.js';
+
+export function createApplication(
+    config,
+    root
+) {
+    const uploadEngine =
+        createUploadEngine({
+            root,
+            multiple: Boolean(
+                config.toolDefinition?.multiple
+            )
+        });
+
+    const toolOptionsContainer =
+        root.querySelector(
+            '.qc-tool-options-container'
+        );
+
+    const resultContainer =
+        root.querySelector(
+            '.qc-result-container'
+        );
+
+    const toolOptionsView =
+        toolOptionsContainer
+            ? renderToolOptions(
+                toolOptionsContainer,
+                config.tool
+            )
+            : null;
 
     async function run() {
         console.log(
@@ -29,9 +59,10 @@ export function createApplication(config, root) {
             config.tool
         );
 
-        const options = toolOptionsView?.getOptions
-            ? toolOptionsView.getOptions()
-            : {};
+        const options =
+            toolOptionsView?.getOptions
+                ? toolOptionsView.getOptions()
+                : {};
 
         console.log(
             '[QuiConvert Core] Tool options:',
@@ -44,10 +75,11 @@ export function createApplication(config, root) {
         );
 
         try {
-            const result = await dispatchTool(
-                config,
-                options
-            );
+            const result =
+                await dispatchTool(
+                    config,
+                    options
+                );
 
             showDownload(
                 resultContainer,
@@ -64,7 +96,8 @@ export function createApplication(config, root) {
 
             showError(
                 resultContainer,
-                error.message || 'Processing failed.'
+                error.message ||
+                    'Processing failed.'
             );
 
             return null;

@@ -1,4 +1,5 @@
 import {
+    setFiles,
     addFiles,
     removeFile,
     getFiles
@@ -15,6 +16,7 @@ export function createUploadEngine(options) {
 
     const {
         root,
+        multiple = false,
         fileInputSelector =
             '.qc-file-input',
         dropZoneSelector =
@@ -88,12 +90,22 @@ export function createUploadEngine(options) {
             return;
         }
 
-        addFiles(files);
+        const incomingFiles =
+            Array.from(files);
+
+        if (multiple) {
+            addFiles(incomingFiles);
+        } else {
+            setFiles([
+                incomingFiles[0]
+            ]);
+        }
+
         refreshFileList();
         notifyFilesChanged();
 
         console.log(
-            '[QuiConvert Core] Files added:',
+            '[QuiConvert Core] Files updated:',
             getFiles()
         );
     }
@@ -188,7 +200,6 @@ export function createUploadEngine(options) {
     return {
         getFiles,
         refreshFileList,
-
         notifyFilesChanged
     };
 }

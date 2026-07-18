@@ -3,58 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <title>QuiConvert Core Test</title>
+    <link
+    rel="stylesheet"
+    href="./styles/qc-core.css"
+>
 
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            padding: 40px;
-        }
+    <link
+    rel="stylesheet"
+    href="./styles/qc-core.css"
+>
+        
 
-        #quiconvert-app {
-            max-width: 700px;
-        }
-
-        .qc-upload-card {
-            border: 2px dashed #999;
-            padding: 60px;
-            text-align: center;
-            cursor: pointer;
-            margin-bottom: 20px;
-            min-height: 180px;
-        }
-
-        .qc-drag-over {
-            border-color: #333;
-            background: #f3f3f3;
-        }
-
-        .qc-file-list {
-            padding-left: 20px;
-        }
-
-        .qc-file-item {
-            margin-bottom: 8px;
-        }
-
-        .qc-file-remove {
-            margin-left: 12px;
-        }
-
-        .qc-tool-options-container {
-            margin: 24px 0;
-            padding: 20px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-        }
-
-        .qc-process-button {
-            margin-top: 8px;
-        }
-
-        .qc-result-container {
-            margin-top: 20px;
-        }
-    </style>
 </head>
 
 <body>
@@ -68,8 +27,7 @@
         <input
             class="qc-file-input"
             type="file"
-            multiple
-            accept="application/pdf"
+            
         >
     </div>
 
@@ -89,7 +47,7 @@
     import { initQuiConvertCore } from './app/main.js';
 
     initQuiConvertCore({
-        tool: 'extract-pages',
+        tool: 'pdf-to-images',
         apiBase: 'http://127.0.0.1:5000',
         apiKey: 'demo123'
     });
