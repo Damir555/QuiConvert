@@ -4,17 +4,31 @@ import {
     isWorkspaceState
 } from "./workspaceState.js";
 
+import { EventBus } from "./eventBus.js";
+import { WorkspaceEvents } from "./workspaceEvents.js";
+
 export class WorkspaceEngine {
 
     constructor(config = {}) {
         this.config = config;
         this.state = null;
         this.capability = null;
+        this.eventBus = new EventBus();
     }
 
     initialize() {
         this.state = WorkspaceState.EMPTY;
 
+        return this;
+    }
+
+    on(event, callback) {
+        this.eventBus.on(event, callback);
+        return this;
+    }
+
+    emit(event, payload) {
+        this.eventBus.emit(event, payload);
         return this;
     }
 
@@ -49,7 +63,14 @@ export class WorkspaceEngine {
             );
         }
 
+        const previousState = this.state;
+
         this.state = nextState;
+
+        this.emit( WorkspaceEvents.STATE_CHANGED,{
+            previousState,
+            currentState: nextState
+    });
 
         return this.state;
     }
