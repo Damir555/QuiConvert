@@ -1,4 +1,6 @@
+import { useState } from 'react'
 import './App.css'
+import UploadFilesPanel from './components/UploadFilesPanel.jsx'
 
 const tools = [
   'Merge PDF',
@@ -17,6 +19,41 @@ const tools = [
 ]
 
 function App() {
+  const [files, setFiles] = useState([])
+  const [activeFileId, setActiveFileId] = useState(null)
+
+  const handleFilesAdded = (incomingFiles) => {
+    if (!incomingFiles.length) return
+
+    setFiles((current) => {
+      const next = [...current, ...incomingFiles]
+
+      if (!activeFileId && next.length > 0) {
+        setActiveFileId(next[0].id)
+      }
+
+      return next
+    })
+  }
+
+  const handleRemoveFile = (fileId) => {
+    setFiles((current) => {
+      const next = current.filter((item) => item.id !== fileId)
+
+      setActiveFileId((currentActiveId) => {
+        if (currentActiveId !== fileId) return currentActiveId
+        return next[0]?.id ?? null
+      })
+
+      return next
+    })
+  }
+
+  const handleReset = () => {
+    setFiles([])
+    setActiveFileId(null)
+  }
+
   return (
     <div className="qc-app">
       <header className="qc-topbar">
@@ -30,7 +67,13 @@ function App() {
 
         <div className="qc-topbar__actions">
           <span className="qc-env-badge">React migration</span>
-          <button type="button" className="qc-button qc-button--ghost">Reset</button>
+          <button
+            type="button"
+            className="qc-button qc-button--ghost"
+            onClick={handleReset}
+          >
+            Reset
+          </button>
         </div>
       </header>
 
@@ -58,32 +101,13 @@ function App() {
         </aside>
 
         <section className="qc-main-column">
-          <section className="qc-panel qc-files">
-            <div className="qc-panel__header qc-panel__header--row">
-              <div>
-                <p className="qc-eyebrow">Input</p>
-                <h2>Files</h2>
-              </div>
-              <button type="button" className="qc-button qc-button--primary">Add PDF</button>
-            </div>
-
-            <div className="qc-dropzone">
-              <div className="qc-dropzone__icon" aria-hidden="true">PDF</div>
-              <div>
-                <h3>Drop PDF files here</h3>
-                <p>or choose files from your computer</p>
-              </div>
-            </div>
-
-            <div className="qc-file-row">
-              <div className="qc-file-row__icon" aria-hidden="true">PDF</div>
-              <div className="qc-file-row__content">
-                <strong>Example-document.pdf</strong>
-                <span>Preview shell only — no file logic connected yet</span>
-              </div>
-              <span className="qc-status-badge">Ready</span>
-            </div>
-          </section>
+          <UploadFilesPanel
+            files={files}
+            activeFileId={activeFileId}
+            onFilesAdded={handleFilesAdded}
+            onSelectFile={setActiveFileId}
+            onRemoveFile={handleRemoveFile}
+          />
 
           <section className="qc-panel qc-preview">
             <div className="qc-panel__header qc-panel__header--row">
@@ -114,9 +138,9 @@ function App() {
               <aside className="qc-document-details">
                 <h3>Document details</h3>
                 <dl>
-                  <div><dt>Status</dt><dd>Ready</dd></div>
-                  <div><dt>Pages</dt><dd>1</dd></div>
-                  <div><dt>Active page</dt><dd>1</dd></div>
+                  <div><dt>Status</dt><dd>{files.length ? 'Ready' : 'Waiting'}</dd></div>
+                  <div><dt>Files</dt><dd>{files.length}</dd></div>
+                  <div><dt>Active</dt><dd>{activeFileId ? 'Selected' : 'None'}</dd></div>
                   <div><dt>Engine</dt><dd>Not connected</dd></div>
                 </dl>
               </aside>
@@ -132,7 +156,7 @@ function App() {
                 </div>
               </div>
               <p className="qc-muted">
-                Tool controls will be migrated here after the application shell is accepted.
+                Tool controls will be migrated after Upload / Files is accepted.
               </p>
               <button type="button" className="qc-button qc-button--primary qc-button--wide">
                 Process PDF
