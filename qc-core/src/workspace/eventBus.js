@@ -6,11 +6,21 @@ export class EventBus {
 
     on(event, callback) {
 
+        if (typeof callback !== "function") {
+            throw new TypeError(
+                "Event listener must be a function."
+            );
+        }
+
         if (!this.listeners.has(event)) {
             this.listeners.set(event, []);
         }
 
-        this.listeners.get(event).push(callback);
+        const list = this.listeners.get(event);
+
+        if (!list.includes(callback)) {
+            list.push(callback);
+        }
 
         return this;
     }
@@ -23,25 +33,70 @@ export class EventBus {
             return this;
         }
 
-        this.listeners.set(
-            event,
-            list.filter(fn => fn !== callback)
-        );
+        const filtered =
+            list.filter(fn => fn !== callback);
+
+        if (filtered.length === 0) {
+            this.listeners.delete(event);
+        } else {
+            this.listeners.set(
+                event,
+                filtered
+            );
+        }
 
         return this;
     }
 
     emit(event, payload = null) {
 
-        const list = this.listeners.get(event);
+        const list =
+            this.listeners.get(event);
 
-        if (!list) {
-            return;
+        if (!list || list.length === 0) {
+            return this;
         }
 
-        for (const callback of list) {
+        const callbacks = [...list];
+
+        for (const callback of callbacks) {
             callback(payload);
         }
+
+        return this;
+    }
+
+    listenerCount(event) {
+
+        const list =
+            this.listeners.get(event);
+
+        return list
+            ? list.length
+            : 0;
+    }
+
+    hasListeners(event) {
+        return this.listenerCount(event) > 0;
+    }
+
+    removeAllListeners(event = null) {
+
+        if (event === null) {
+            this.listeners.clear();
+            return this;
+        }
+
+        this.listeners.delete(event);
+
+        return this;
+    }
+
+    destroy() {
+
+        this.listeners.clear();
+
+        return this;
     }
 
 }

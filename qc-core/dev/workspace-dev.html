@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1"
+    >
+
+    <title>
+        QuiConvert Workspace Development
+    </title>
+
+    <link
+        rel="stylesheet"
+        href="./workspace-dev.css"
+    >
+
+</head>
+
+<body>
+
+    <h1>
+        QuiConvert Workspace
+    </h1>
+
+    <div id="workspace-root"></div>
+
+    <script type="module">
+
+        import {
+            createWorkspaceApplication,
+            WorkspaceEvents
+        } from "../src/workspace/index.js";
+
+        const root =
+            document.querySelector(
+                "#workspace-root"
+            );
+
+        if (!root) {
+            throw new Error(
+                "Workspace development root was not found."
+            );
+        }
+
+        const application =
+            createWorkspaceApplication(
+                root,
+                {
+                    development: true,
+                    tool: "rearrange",
+                    apiBase: "http://127.0.0.1:5000",
+                    uploadFieldName: "files",
+                    toolbar: {
+                        title: "Rearrange PDF",
+                        subtitle: "Change the order of PDF pages before processing.",
+                        badge: "PDF Tool"
+                    }
+                }
+            );
+
+        const workspace =
+            application.getEngine();
+
+        window.qcWorkspaceApplication =
+            application;
+
+        window.qcWorkspace =
+            workspace;
+
+        window.qcToolbarZone =
+            application.getZone(
+                "toolbar"
+            );
+
+        window.qcUploadZone =
+            application.getZone(
+                "upload"
+            );
+
+        window.qcFilesZone =
+            application.getZone(
+                "files"
+            );
+
+        window.qcThumbnailZone =
+            application.getZone(
+                "thumbnail"
+            );
+
+        window.qcPreviewZone =
+            application.getZone(
+                "preview"
+            );
+
+        console.log(
+            "Workspace application initialized:",
+            application
+        );
+
+        console.log(
+            "Workspace engine:",
+            workspace
+        );
+
+        console.log(
+            "Workspace zones:",
+            application.getZones()
+        );
+
+        // ===========================
+        // SelectionManager test
+        // ===========================
+
+        const selection =
+            workspace.getSelectionManager();
+
+        const handleSelectionChanged =
+            selectedItem => {
+
+                console.log(
+                    "Selection changed:",
+                    selectedItem
+                );
+
+            };
+
+        workspace.on(
+            WorkspaceEvents.SELECTION_CHANGED,
+            handleSelectionChanged
+        );
+
+        selection.select({
+            type: "page",
+            id: 1
+        });
+
+        console.log(
+            "Current selection:",
+            selection.getSelection()
+        );
+
+        console.log(
+            "Is page-1 selected:",
+            selection.isSelected({
+                type: "page",
+                id: 1
+            })
+        );
+
+        selection.clear();
+
+        window.addEventListener(
+            "beforeunload",
+            () => {
+
+                workspace.off(
+                    WorkspaceEvents.SELECTION_CHANGED,
+                    handleSelectionChanged
+                );
+
+                application.destroy();
+
+            },
+            {
+                once: true
+            }
+        );
+
+    </script>
+
+</body>
+
+</html>

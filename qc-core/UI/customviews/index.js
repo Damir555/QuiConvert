@@ -1,37 +1,15 @@
-import {
-    renderRearrangeOptionsView
-} from '../rearrangeOptionsView.js';
-
-import {
-    renderDeletePagesOptionsView
-} from '../deletePagesOptionsView.js';
-
-import {
-    renderDuplicatePagesOptionsView
-} from '../duplicatePagesOptionsView.js';
-
-import {
-    renderExtractPagesOptionsView
-} from '../extractPagesOptionsView.js';
-
-const CUSTOM_TOOL_VIEWS = {
-    rearrange:
-        renderRearrangeOptionsView,
-
-    'delete-pages':
-        renderDeletePagesOptionsView,
-
-    'duplicate-pages':
-        renderDuplicatePagesOptionsView,
-
-    'extract-pages':
-        renderExtractPagesOptionsView
-};
+const CUSTOM_TOOL_VIEWS = Object.freeze({});
 
 export function renderCustomToolView(
     container,
     tool
 ) {
+    if (!(container instanceof HTMLElement)) {
+        throw new TypeError(
+            'A valid custom tool view container is required.'
+        );
+    }
+
     const renderer =
         CUSTOM_TOOL_VIEWS[tool];
 

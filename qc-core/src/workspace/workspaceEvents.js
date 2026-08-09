@@ -1,9 +1,45 @@
-export const WorkspaceEvents = {
+export const WorkspaceEvents = Object.freeze({
 
-    INITIALIZED: "workspace.initialized",
+    /*
+     * Workspace lifecycle
+     */
 
-    STATE_CHANGED: "workspace.stateChanged",
+    INITIALIZED:
+        "workspace.initialized",
 
-    RESET: "workspace.reset"
+    STATE_CHANGED:
+        "workspace.stateChanged",
 
-};
+    RESET:
+        "workspace.reset",
+
+    /*
+     * Document lifecycle
+     */
+
+    DOCUMENTS_SELECTED:
+        "workspace.documentsSelected",
+
+    STORE_CHANGED:
+        "workspace.storeChanged",
+
+    DOCUMENT_SESSION_CREATED:
+        "workspace.documentSessionCreated",
+
+    DOCUMENT_SESSION_DESTROYED:
+        "workspace.documentSessionDestroyed",
+
+    DOCUMENT_SESSION_CHANGED:
+        "workspace.documentSessionChanged",
+
+    /*
+     * Selection / Navigation
+     */
+
+    SELECTION_CHANGED:
+        "workspace.selectionChanged",
+
+    ACTIVE_PAGE_CHANGED:
+        "workspace.activePageChanged"
+
+});

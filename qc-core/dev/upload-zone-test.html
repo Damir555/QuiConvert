@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1"
+    >
+
+    <title>Upload Zone Test</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 24px;
+        }
+
+        .qc-workspace__section {
+            border: 2px solid #777;
+            margin-bottom: 20px;
+            padding: 16px;
+        }
+
+        .qc-workspace__zone {
+            border: 1px dashed #999;
+            margin-bottom: 10px;
+            min-height: 50px;
+            padding: 12px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>Upload Zone Test</h1>
+
+    <div id="workspace-root"></div>
+
+    <script type="module">
+        import {
+            WorkspaceLayout
+        } from "../src/workspace/workspaceLayout.js";
+
+        import {
+            UploadZone
+        } from "../src/zones/uploadZone.js";
+
+        const root = document.querySelector("#workspace-root");
+
+        const layout = new WorkspaceLayout();
+        layout.mount(root);
+
+        const uploadZone = new UploadZone(layout);
+        uploadZone.initialize();
+
+        console.log("Upload Zone initialized:", uploadZone);
+        console.log("Upload button:", uploadZone.getButton());
+    </script>
+
+</body>
+</html>

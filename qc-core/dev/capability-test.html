@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1"
+    >
+
+    <title>Workspace Capability Test</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.5;
+            padding: 24px;
+        }
+
+        pre {
+            background: #f3f3f3;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            padding: 16px;
+            white-space: pre-wrap;
+        }
+
+        .pass {
+            font-weight: 700;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>Workspace Capability Test</h1>
+
+    <p>
+        Open DevTools Console for the complete test output.
+    </p>
+
+    <pre id="test-output">Running tests…</pre>
+
+    <script type="module">
+
+        import {
+            WorkspaceEngine
+        } from "../src/workspace/workspaceEngine.js";
+
+        import {
+            DEFAULT_TOOL_CAPABILITIES,
+            resolveToolCapabilities
+        } from "../src/shared/toolCapabilities.js";
+
+        const output =
+            document.querySelector(
+                "#test-output"
+            );
+
+        const results = [];
+
+        function assert(
+            condition,
+            message
+        ) {
+            if (!condition) {
+                throw new Error(message);
+            }
+
+            results.push(
+                `PASS: ${message}`
+            );
+        }
+
+        const defaultWorkspace =
+            new WorkspaceEngine()
+                .initialize();
+
+        assert(
+            JSON.stringify(
+                defaultWorkspace.getCapabilities()
+            ) === JSON.stringify(
+                DEFAULT_TOOL_CAPABILITIES
+            ),
+            "Workspace resolves the complete default capability set."
+        );
+
+        const rearrangeWorkspace =
+            new WorkspaceEngine({
+                capabilities: {
+                    thumbnails: true,
+                    pageReorder: true
+                }
+            }).initialize();
+
+        const rearrangeCapabilities =
+            rearrangeWorkspace.getCapabilities();
+
+        assert(
+            rearrangeCapabilities.preview === true,
+            "Unspecified capabilities retain their default values."
+        );
+
+        assert(
+            rearrangeCapabilities.thumbnails === true,
+            "A tool may enable thumbnails."
+        );
+
+        assert(
+            rearrangeCapabilities.pageReorder === true,
+            "A tool may enable page reordering."
+        );
+
+        assert(
+            rearrangeCapabilities.multiFile === false,
+            "Unspecified multi-file support remains disabled."
+        );
+
+        assert(
+            Object.isFrozen(
+                rearrangeCapabilities
+            ),
+            "Resolved capabilities are immutable."
+        );
+
+        rearrangeWorkspace.loadCapability({
+            preview: false,
+            toolOptions: false
+        });
+
+        assert(
+            rearrangeWorkspace
+                .getCapabilities()
+                .preview === false,
+            "loadCapability() replaces the active resolved profile."
+        );
+
+        let unknownKeyRejected = false;
+
+        try {
+            resolveToolCapabilities({
+                unsupportedCapability: true
+            });
+        } catch (error) {
+            unknownKeyRejected = true;
+            console.log(
+                "Expected unknown-key error:",
+                error.message
+            );
+        }
+
+        assert(
+            unknownKeyRejected,
+            "Unknown capability names are rejected."
+        );
+
+        let invalidValueRejected = false;
+
+        try {
+            resolveToolCapabilities({
+                preview: "yes"
+            });
+        } catch (error) {
+            invalidValueRejected = true;
+            console.log(
+                "Expected invalid-value error:",
+                error.message
+            );
+        }
+
+        assert(
+            invalidValueRejected,
+            "Non-boolean capability values are rejected."
+        );
+
+        output.textContent =
+            results.join("\n");
+
+        output.classList.add(
+            "pass"
+        );
+
+        window.qcCapabilityTest = {
+            defaultWorkspace,
+            rearrangeWorkspace,
+            DEFAULT_TOOL_CAPABILITIES,
+            resolveToolCapabilities
+        };
+
+        console.table(
+            rearrangeCapabilities
+        );
+
+        console.log(
+            "Capability tests completed:",
+            results
+        );
+
+    </script>
+
+</body>
+</html>

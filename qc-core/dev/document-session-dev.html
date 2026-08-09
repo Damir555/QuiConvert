@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>
+        QuiConvert DocumentSession Dev Test
+    </title>
+
+    <style>
+        body {
+            font-family:
+                Arial,
+                sans-serif;
+
+            max-width: 960px;
+            margin: 0 auto;
+            padding: 32px;
+            line-height: 1.5;
+        }
+
+        h1 {
+            margin-bottom: 8px;
+        }
+
+        .test-summary {
+            margin: 24px 0;
+            padding: 16px;
+            border: 1px solid #cccccc;
+            border-radius: 8px;
+        }
+
+        .test-list {
+            display: grid;
+            gap: 12px;
+            padding: 0;
+            list-style: none;
+        }
+
+        .test-item {
+            padding: 12px 16px;
+            border: 1px solid #cccccc;
+            border-radius: 8px;
+        }
+
+        .test-item[data-status="passed"] {
+            border-color: #1f8f4e;
+        }
+
+        .test-item[data-status="failed"] {
+            border-color: #c0392b;
+        }
+
+        .test-name {
+            font-weight: 700;
+        }
+
+        .test-message {
+            margin-top: 6px;
+            white-space: pre-wrap;
+        }
+
+        pre {
+            overflow-x: auto;
+            padding: 16px;
+            background: #f4f4f4;
+            border-radius: 8px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>
+        DocumentSession Development Test
+    </h1>
+
+    <p>
+        Isolated lifecycle and validation tests.
+    </p>
+
+    <div
+        id="test-summary"
+        class="test-summary"
+    >
+        Running tests...
+    </div>
+
+    <ul
+        id="test-list"
+        class="test-list"
+    ></ul>
+
+    <h2>
+        Change events
+    </h2>
+
+    <pre id="event-log">
+No events yet.
+    </pre>
+
+    <script type="module">
+
+        import {
+            DocumentSession
+        } from "../src/domain/documentSession.js";
+
+        const testList =
+            document.getElementById(
+                "test-list"
+            );
+
+        const testSummary =
+            document.getElementById(
+                "test-summary"
+            );
+
+        const eventLog =
+            document.getElementById(
+                "event-log"
+            );
+
+        const results = [];
+        const emittedEvents = [];
+
+        function createDocument() {
+            return {
+                id: "document-test-1",
+                name: "sample.pdf",
+                size: 1024,
+                type: "application/pdf"
+            };
+        }
+
+        function assert(
+            condition,
+            message
+        ) {
+            if (!condition) {
+                throw new Error(
+                    message
+                );
+            }
+        }
+
+        function assertThrows(
+            callback,
+            expectedMessage
+        ) {
+            let thrownError = null;
+
+            try {
+                callback();
+            } catch (error) {
+                thrownError = error;
+            }
+
+            assert(
+                thrownError instanceof Error,
+                "Expected an error to be thrown."
+            );
+
+            if (expectedMessage) {
+                assert(
+                    thrownError.message.includes(
+                        expectedMessage
+                    ),
+                    [
+                        "Unexpected error message.",
+                        `Expected: ${expectedMessage}`,
+                        `Received: ${thrownError.message}`
+                    ].join("\n")
+                );
+            }
+        }
+
+        function runTest(
+            name,
+            callback
+        ) {
+            try {
+                callback();
+
+                results.push({
+                    name,
+                    status: "passed",
+                    message: "Passed"
+                });
+            } catch (error) {
+                results.push({
+                    name,
+                    status: "failed",
+                    message:
+                        error instanceof Error
+                            ? error.stack
+                            : String(error)
+                });
+            }
+        }
+
+        function renderResults() {
+            testList.innerHTML = "";
+
+            for (const result of results) {
+                const item =
+                    document.createElement("li");
+
+                item.className =
+                    "test-item";
+
+                item.dataset.status =
+                    result.status;
+
+                const name =
+                    document.createElement("div");
+
+                name.className =
+                    "test-name";
+
+                name.textContent =
+                    `${result.status === "passed" ? "✓" : "✗"} ${result.name}`;
+
+                const message =
+                    document.createElement("div");
+
+                message.className =
+                    "test-message";
+
+                message.textContent =
+                    result.message;
+
+                item.append(
+                    name,
+                    message
+                );
+
+                testList.appendChild(
+                    item
+                );
+            }
+
+            const passed =
+                results.filter(
+                    result =>
+                        result.status === "passed"
+                ).length;
+
+            const failed =
+                results.length - passed;
+
+            testSummary.textContent =
+                [
+                    `Total: ${results.length}`,
+                    `Passed: ${passed}`,
+                    `Failed: ${failed}`
+                ].join(" | ");
+
+            eventLog.textContent =
+                emittedEvents.length > 0
+                    ? JSON.stringify(
+                        emittedEvents,
+                        null,
+                        2
+                    )
+                    : "No events emitted.";
+        }
+
+        runTest(
+            "Constructor creates idle session",
+            () => {
+                const session =
+                    new DocumentSession(
+                        createDocument()
+                    );
+
+                assert(
+                    session.getStatus() === "idle",
+                    "Initial status must be idle."
+                );
+
+                assert(
+                    session.getPageCount() === 0,
+                    "Initial page count must be 0."
+                );
+
+                assert(
+                    session.getActivePage() === null,
+                    "Initial active page must be null."
+                );
+
+                assert(
+                    session.getRevision() === 0,
+                    "Initial revision must be 0."
+                );
+
+                assert(
+                    session.isDirty() === false,
+                    "Initial dirty state must be false."
+                );
+            }
+        );
+
+        runTest(
+            "Constructor rejects missing document",
+            () => {
+                assertThrows(
+                    () => {
+                        new DocumentSession();
+                    },
+                    "valid WorkspaceDocument"
+                );
+            }
+        );
+
+        runTest(
+            "Constructor rejects invalid document ID",
+            () => {
+                assertThrows(
+                    () => {
+                        new DocumentSession({
+                            id: ""
+                        });
+                    },
+                    "valid id"
+                );
+            }
+        );
+
+        runTest(
+            "Session returns associated document",
+            () => {
+                const workspaceDocument =
+                    createDocument();
+
+                const session =
+                    new DocumentSession(
+                        workspaceDocument
+                    );
+
+                assert(
+                    session.getDocument() ===
+                        workspaceDocument,
+                    "Session must preserve the document reference."
+                );
+
+                assert(
+                    session.getDocumentId() ===
+                        workspaceDocument.id,
+                    "Session must return the correct document ID."
+                );
+            }
+        );
+
+        runTest(
+            "setLoading changes status",
+            () => {
+                const session =
+                    new DocumentSession(
+                        createDocument()
+                    );
+
+                session.setLoading();
+
+                assert(
+                    session.getStatus() ===
+                        "loading",
+                    "Status must become loading."
+                );
+
+                assert(
+                    session.getError() === null,
+                    "Loading must clear the error."
+                );
+
+                assert(
+                    session.getRevision() === 1,
+                    "Loading must increment revision."
+                );
+            }
+        );
+
+        runTest(
+            "initializePages creates ready state",
+            () => {
+                const session =
+                    new DocumentSession(
+                        createDocument()
+                    );
+
+                session.initializePages(5);
+
+                assert(
+                    session.getStatus() ===
+                        "ready",
+                    "Status must become ready."
+                );
+
+                assert(
+                    session.getPageCount() === 5,
+                    "Page count must be 5."
+                );
+
+                assert(
+                    session.getActivePage() === 1,
+                    "First page must become active."
+                );
+
+                assert(
+                    session.isDirty() === false,
+                    "Initialization must not mark session dirty."
+                );
+            }
+        );
+
+        runTest(
+            "initializePages rejects invalid page count",
+            () => {
+                const session =
+                    new DocumentSession(
+                        createDocument()
+                    );
+
+                assertThrows(
+                    () => {
+                        session.initializePages(0);
+                    },
+                    "positive integer"
+                );
+
+                assertThrows(
+                    () => {
+                        session.initializePages(2.5);
+                    },
+                    "positive integer"
+                );
+            }
+        );
+
+        runTest(
+            "setActivePage changes current page",
+            () => {
+                const session =
+                    new DocumentSession(
+                        createDocument()
+                    );
+
+                session.initializePages(4);
+                session.setActivePage(3);
+
+                assert(
+                    session.getActivePage() === 3,
+                    "Active page must become 3."
+                );
+
+                assert(
+                    session.getRevision() === 2,
+                    "Revision must increment after page change."
+                );
+
+                assert(
+                    session.isDirty() === false,
+                    "Navigation must not mark session dirty."
+                );
+            }
+        );
+
+        runTest(
+            "setActivePage rejects invalid range",
+            () => {
+                const session =
+                    new DocumentSession(
+                        createDocument()
+                    );
+
+                session.initializePages(3);
+
+                assertThrows(
+                    () => {
+                        session.setActivePage(0);
+                    },
+                    "between 1 and 3"
+                );
+
+                assertThrows(
+                    () => {
+                        session.setActivePage(4);
+                    },
+                    "between 1 and 3"
+                );
+            }
+        );
+
+        runTest(
+            "setActivePage rejects use before initialization",
+            () => {
+                const session =
+                    new DocumentSession(
+                        createDocument()
+                    );
+
+                assertThrows(
+                    () => {
+                        session.setActivePage(1);
+                    },
+                    "not been initialized"
+                );
+            }
+        );
+
+        runTest(
+            "Selecting same active page does not increment revision",
+            () => {
+                const session =
+                    new DocumentSession(
+                        createDocument()
+                    );
+
+                session.initializePages(3);
+
+                const revisionBefore =
+                    session.getRevision();
+
+                session.setActivePage(1);
+
+                assert(
+                    session.getRevision() ===
+                        revisionBefore,
+                    "Unchanged page must not increment revision."
+                );
+            }
+        );
+
+        runTest(
+            "setError normalizes string error",
+            () => {
+                const session =
+                    new DocumentSession(
+                        createDocument()
+                    );
+
+                session.setError(
+                    "PDF loading failed."
+                );
+
+                assert(
+                    session.getStatus() ===
+                        "error",
+                    "Status must become error."
+                );
+
+                assert(
+                    session.getError()
+                        instanceof Error,
+                    "Error must be normalized to an Error instance."
+                );
+
+                assert(
+                    session.getError().message ===
+                        "PDF loading failed.",
+                    "Error message must be preserved."
+                );
+            }
+        );
+
+        runTest(
+            "onChange receives structured events",
+            () => {
+                const session =
+                    new DocumentSession(
+                        createDocument(),
+                        {
+                            onChange(change) {
+                                emittedEvents.push(
+                                    change
+                                );
+                            }
+                        }
+                    );
+
+                session.setLoading();
+                session.initializePages(3);
+                session.setActivePage(2);
+
+                assert(
+                    emittedEvents.length === 3,
+                    "Exactly three events must be emitted."
+                );
+
+                assert(
+                    emittedEvents[2]
+                        .change
+                        .type === "active-page",
+                    "Last event must describe active-page change."
+                );
+
+                assert(
+                    emittedEvents[2]
+                        .documentId ===
+                        "document-test-1",
+                    "Event must include document ID."
+                );
+            }
+        );
+
+        runTest(
+            "destroy clears runtime state",
+            () => {
+                const session =
+                    new DocumentSession(
+                        createDocument()
+                    );
+
+                session.initializePages(5);
+                session.setActivePage(4);
+                session.destroy();
+
+                assert(
+                    session.getStatus() ===
+                        "destroyed",
+                    "Status must become destroyed."
+                );
+
+                assert(
+                    session.getPageCount() === 0,
+                    "Destroyed session must clear page count."
+                );
+
+                assert(
+                    session.getActivePage() === null,
+                    "Destroyed session must clear active page."
+                );
+
+                assert(
+                    session.isDestroyed() === true,
+                    "Destroyed flag must be true."
+                );
+            }
+        );
+
+        runTest(
+            "Destroyed session rejects further changes",
+            () => {
+                const session =
+                    new DocumentSession(
+                        createDocument()
+                    );
+
+                session.destroy();
+
+                assertThrows(
+                    () => {
+                        session.setLoading();
+                    },
+                    "has been destroyed"
+                );
+
+                assertThrows(
+                    () => {
+                        session.initializePages(2);
+                    },
+                    "has been destroyed"
+                );
+            }
+        );
+
+        renderResults();
+
+        console.log(
+            "DocumentSession test results:",
+            results
+        );
+
+        console.log(
+            "DocumentSession emitted events:",
+            emittedEvents
+        );
+
+    </script>
+
+</body>
+</html>
