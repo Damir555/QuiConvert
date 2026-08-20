@@ -1,30 +1,45 @@
 import { useEffect, useState } from 'react'
 import './App.css'
 import UploadFilesPanel from './components/UploadFilesPanel.jsx'
-import { mergePdfFiles } from './services/pdfApi.js'
+import { mergePdfFiles, splitPdfFile } from './services/pdfApi.js'
 
 const tools = [
-  'Merge PDF',
-  'Split PDF',
-  'Rotate PDF',
-  'Compress PDF',
-  'Rearrange Pages',
-  'Delete Pages',
-  'Duplicate Pages',
-  'Extract Pages',
-  'Reverse Pages',
-  'Page Numbers',
-  'Protect PDF',
-  'Unlock PDF',
-  'Watermark PDF',
+  { id: 'merge', title: 'Merge PDF', enabled: true },
+  { id: 'split', title: 'Split PDF', enabled: true },
+  { id: 'rotate', title: 'Rotate PDF' },
+  { id: 'compress', title: 'Compress PDF' },
+  { id: 'rearrange', title: 'Rearrange Pages' },
+  { id: 'delete', title: 'Delete Pages' },
+  { id: 'duplicate', title: 'Duplicate Pages' },
+  { id: 'extract', title: 'Extract Pages' },
+  { id: 'reverse', title: 'Reverse Pages' },
+  { id: 'page-numbers', title: 'Page Numbers' },
+  { id: 'protect', title: 'Protect PDF' },
+  { id: 'unlock', title: 'Unlock PDF' },
+  { id: 'watermark', title: 'Watermark PDF' },
 ]
 
+function isValidPageRange(value) {
+  if (!/^\d+(?:-\d+)?(?:\s*,\s*\d+(?:-\d+)?)*$/.test(value)) {
+    return false
+  }
+
+  return value.split(',').every((part) => {
+    const [start, end = start] = part.trim().split('-').map(Number)
+    return start > 0 && end >= start
+  })
+}
+
 function App() {
+  const [activeToolId, setActiveToolId] = useState('merge')
   const [files, setFiles] = useState([])
   const [activeFileId, setActiveFileId] = useState(null)
+  const [splitMode, setSplitMode] = useState('every-page')
+  const [splitPages, setSplitPages] = useState('')
   const [processing, setProcessing] = useState(false)
   const [processError, setProcessError] = useState('')
   const [result, setResult] = useState(null)
+  const activeTool = tools.find((tool) => tool.id === activeToolId) ?? tools[0]
 
   useEffect(() => {
     return () => {
@@ -48,6 +63,13 @@ function App() {
     if (!incomingFiles.length) return
 
     clearResult()
+
+    if (activeToolId === 'split') {
+      const [firstFile] = incomingFiles
+      setFiles([firstFile])
+      setActiveFileId(firstFile.id)
+      return
+    }
 
     setFiles((current) => {
       const next = [...current, ...incomingFiles]
@@ -79,14 +101,39 @@ function App() {
     clearResult()
     setFiles([])
     setActiveFileId(null)
+    setSplitMode('every-page')
+    setSplitPages('')
     setProcessing(false)
+  }
+
+  const handleToolChange = (toolId) => {
+    if (processing || toolId === activeToolId) return
+
+    clearResult()
+    setActiveToolId(toolId)
   }
 
   const handleProcess = async () => {
     if (processing) return
 
-    if (files.length < 2) {
+    if (activeToolId === 'merge' && files.length < 2) {
       setProcessError('Merge PDF requires at least two PDF files.')
+      return
+    }
+
+    if (activeToolId === 'split' && files.length !== 1) {
+      setProcessError('Split PDF requires exactly one PDF file.')
+      return
+    }
+
+    const requestedPages = splitMode === 'range' ? splitPages.trim() : ''
+
+    if (
+      activeToolId === 'split' &&
+      splitMode === 'range' &&
+      !isValidPageRange(requestedPages)
+    ) {
+      setProcessError('Enter a valid page range, for example 1-3,5,8-10.')
       return
     }
 
@@ -95,13 +142,15 @@ function App() {
     clearResult()
 
     try {
-      const response = await mergePdfFiles(files.map((item) => item.file))
+      const response = activeToolId === 'split'
+        ? await splitPdfFile(files[0].file, requestedPages)
+        : await mergePdfFiles(files.map((item) => item.file))
 
       const url = URL.createObjectURL(response.blob)
 
       setResult({
         url,
-        filename: response.filename || 'merged.pdf',
+        filename: response.filename,
       })
     } catch (error) {
       setProcessError(
@@ -113,6 +162,11 @@ function App() {
       setProcessing(false)
     }
   }
+
+  const canProcess = activeToolId === 'split'
+    ? files.length === 1 &&
+      (splitMode === 'every-page' || isValidPageRange(splitPages.trim()))
+    : files.length >= 2
 
   return (
     <div className="qc-app">
@@ -148,16 +202,17 @@ function App() {
           </div>
 
           <div className="qc-tool-list" role="list">
-            {tools.map((tool, index) => (
+            {tools.map((tool) => (
               <button
-                key={tool}
+                key={tool.id}
                 type="button"
-                className={`qc-tool-item ${index === 0 ? 'is-active' : ''}`}
-                disabled={index !== 0}
-                title={index === 0 ? 'Merge PDF' : 'Not migrated yet'}
+                className={`qc-tool-item ${tool.id === activeToolId ? 'is-active' : ''}`}
+                disabled={!tool.enabled || processing}
+                title={tool.enabled ? tool.title : 'Not migrated yet'}
+                onClick={() => handleToolChange(tool.id)}
               >
                 <span className="qc-tool-item__dot" aria-hidden="true" />
-                <span>{tool}</span>
+                <span>{tool.title}</span>
               </button>
             ))}
           </div>
@@ -167,6 +222,7 @@ function App() {
           <UploadFilesPanel
             files={files}
             activeFileId={activeFileId}
+            multiple={activeToolId === 'merge'}
             onFilesAdded={handleFilesAdded}
             onSelectFile={setActiveFileId}
             onRemoveFile={handleRemoveFile}
@@ -215,19 +271,77 @@ function App() {
               <div className="qc-panel__header">
                 <div>
                   <p className="qc-eyebrow">Tool settings</p>
-                  <h2>Merge PDF</h2>
+                  <h2>{activeTool.title}</h2>
                 </div>
               </div>
 
-              <p className="qc-muted">
-                Merge uses the existing QuiConvert Flask endpoint.
-              </p>
+              {activeToolId === 'split' ? (
+                <fieldset className="qc-tool-options">
+                  <legend>Split mode</legend>
+
+                  <label className="qc-radio-option">
+                    <input
+                      type="radio"
+                      name="split-mode"
+                      value="every-page"
+                      checked={splitMode === 'every-page'}
+                      onChange={(event) => {
+                        clearResult()
+                        setSplitMode(event.target.value)
+                      }}
+                      disabled={processing}
+                    />
+                    <span>
+                      <strong>Split every page</strong>
+                      <small>Download all pages as a ZIP archive.</small>
+                    </span>
+                  </label>
+
+                  <label className="qc-radio-option">
+                    <input
+                      type="radio"
+                      name="split-mode"
+                      value="range"
+                      checked={splitMode === 'range'}
+                      onChange={(event) => {
+                        clearResult()
+                        setSplitMode(event.target.value)
+                      }}
+                      disabled={processing}
+                    />
+                    <span>
+                      <strong>Use page ranges</strong>
+                      <small>Choose pages or ranges to extract.</small>
+                    </span>
+                  </label>
+
+                  {splitMode === 'range' ? (
+                    <label className="qc-field">
+                      <span>Page range</span>
+                      <input
+                        type="text"
+                        value={splitPages}
+                        placeholder="Example: 1-3,5,8-10"
+                        onChange={(event) => {
+                          clearResult()
+                          setSplitPages(event.target.value)
+                        }}
+                        disabled={processing}
+                      />
+                    </label>
+                  ) : null}
+                </fieldset>
+              ) : (
+                <p className="qc-muted">
+                  Merge uses the existing QuiConvert Flask endpoint.
+                </p>
+              )}
 
               <button
                 type="button"
                 className="qc-button qc-button--primary qc-button--wide"
                 onClick={handleProcess}
-                disabled={processing || files.length < 2}
+                disabled={processing || !canProcess}
               >
                 {processing ? 'Processing…' : 'Process PDF'}
               </button>

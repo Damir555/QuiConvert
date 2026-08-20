@@ -4,6 +4,7 @@ import { createFileRecord, formatFileSize, isPdfFile } from '../utils/files.js'
 function UploadFilesPanel({
   files,
   activeFileId,
+  multiple = true,
   onFilesAdded,
   onSelectFile,
   onRemoveFile,
@@ -40,9 +41,12 @@ function UploadFilesPanel({
       return
     }
 
-    onFilesAdded(accepted.map(createFileRecord))
+    const acceptedForTool = multiple ? accepted : accepted.slice(0, 1)
+    onFilesAdded(acceptedForTool.map(createFileRecord))
 
-    if (rejectedCount > 0) {
+    if (!multiple && accepted.length > 1) {
+      setWarning('Split PDF accepts one file. Only the first PDF was added.')
+    } else if (rejectedCount > 0) {
       setWarning(
         rejectedCount === 1
           ? '1 unsupported file was ignored.'
@@ -111,7 +115,7 @@ function UploadFilesPanel({
           className="qc-button qc-button--primary"
           onClick={() => inputRef.current?.click()}
         >
-          Add PDF
+          {multiple ? 'Add PDFs' : 'Add PDF'}
         </button>
       </div>
 
@@ -120,7 +124,7 @@ function UploadFilesPanel({
         className="qc-visually-hidden"
         type="file"
         accept="application/pdf,.pdf"
-        multiple
+        multiple={multiple}
         onChange={handleInputChange}
       />
 
@@ -138,14 +142,14 @@ function UploadFilesPanel({
         <div>
           <h3>
             {dragActive
-              ? 'Drop PDF files to add them'
-              : 'Drop PDF files here'}
+              ? `Drop ${multiple ? 'PDF files' : 'a PDF'} to add`
+              : `Drop ${multiple ? 'PDF files' : 'a PDF'} here`}
           </h3>
           <p>
             {dragActive
               ? 'Release to add files to the workspace.'
               : files.length === 0
-                ? 'Drag and drop PDF files here or choose them from your device.'
+                ? `Drag and drop ${multiple ? 'PDF files' : 'a PDF'} here or choose ${multiple ? 'them' : 'it'} from your device.`
                 : workspaceMessage}
           </p>
         </div>

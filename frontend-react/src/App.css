@@ -164,6 +164,15 @@
   background: #f5f8fc;
 }
 
+.qc-tool-item:disabled {
+  cursor: not-allowed;
+  opacity: 0.48;
+}
+
+.qc-tool-item:disabled:hover {
+  background: transparent;
+}
+
 .qc-tool-item.is-active {
   background: #edf4ff;
   color: #155eef;
@@ -452,6 +461,87 @@
 
 .qc-action > .qc-button {
   width: calc(100% - 40px);
+}
+
+.qc-tool-options {
+  margin: 18px 20px 0;
+  padding: 0;
+  border: 0;
+  display: grid;
+  gap: 10px;
+}
+
+.qc-tool-options legend {
+  margin-bottom: 10px;
+  color: #344054;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.qc-radio-option {
+  padding: 12px;
+  border: 1px solid #dfe6f0;
+  border-radius: 11px;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  cursor: pointer;
+  background: #fbfcfe;
+}
+
+.qc-radio-option:has(input:checked) {
+  border-color: #84adff;
+  background: #f5f8ff;
+  box-shadow: 0 0 0 2px rgba(21, 94, 239, 0.06);
+}
+
+.qc-radio-option input {
+  margin: 3px 0 0;
+  accent-color: #155eef;
+}
+
+.qc-radio-option span,
+.qc-radio-option strong,
+.qc-radio-option small {
+  display: block;
+}
+
+.qc-radio-option strong {
+  color: #344054;
+  font-size: 13px;
+}
+
+.qc-radio-option small {
+  margin-top: 3px;
+  color: #7b879d;
+  font-size: 11px;
+}
+
+.qc-field {
+  margin-top: 2px;
+  display: grid;
+  gap: 7px;
+  color: #344054;
+  font-size: 12px;
+  font-weight: 750;
+}
+
+.qc-field input {
+  width: 100%;
+  min-height: 42px;
+  box-sizing: border-box;
+  border: 1px solid #cfd8e6;
+  border-radius: 10px;
+  padding: 0 12px;
+  color: #172033;
+  background: #ffffff;
+  font: inherit;
+  font-weight: 500;
+}
+
+.qc-field input:focus {
+  outline: 3px solid rgba(21, 94, 239, 0.13);
+  border-color: #155eef;
 }
 
 .qc-result__empty {
