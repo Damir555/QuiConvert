@@ -2,12 +2,16 @@ import { useEffect, useState } from 'react'
 import './App.css'
 import PdfPreview from './components/PdfPreview.jsx'
 import UploadFilesPanel from './components/UploadFilesPanel.jsx'
-import { mergePdfFiles, splitPdfFile } from './services/pdfApi.js'
+import {
+  mergePdfFiles,
+  rotatePdfFile,
+  splitPdfFile,
+} from './services/pdfApi.js'
 
 const tools = [
   { id: 'merge', title: 'Merge PDF', enabled: true },
   { id: 'split', title: 'Split PDF', enabled: true },
-  { id: 'rotate', title: 'Rotate PDF' },
+  { id: 'rotate', title: 'Rotate PDF', enabled: true },
   { id: 'compress', title: 'Compress PDF' },
   { id: 'rearrange', title: 'Rearrange Pages' },
   { id: 'delete', title: 'Delete Pages' },
@@ -37,11 +41,13 @@ function App() {
   const [activeFileId, setActiveFileId] = useState(null)
   const [splitMode, setSplitMode] = useState('every-page')
   const [splitPages, setSplitPages] = useState('')
+  const [rotation, setRotation] = useState('90')
   const [processing, setProcessing] = useState(false)
   const [processError, setProcessError] = useState('')
   const [result, setResult] = useState(null)
   const activeTool = tools.find((tool) => tool.id === activeToolId) ?? tools[0]
   const activeFile = files.find((item) => item.id === activeFileId) ?? files[0]
+  const isSingleFileTool = activeToolId === 'split' || activeToolId === 'rotate'
 
   useEffect(() => {
     return () => {
@@ -66,7 +72,7 @@ function App() {
 
     clearResult()
 
-    if (activeToolId === 'split') {
+    if (isSingleFileTool) {
       const [firstFile] = incomingFiles
       setFiles([firstFile])
       setActiveFileId(firstFile.id)
@@ -105,6 +111,7 @@ function App() {
     setActiveFileId(null)
     setSplitMode('every-page')
     setSplitPages('')
+    setRotation('90')
     setProcessing(false)
   }
 
@@ -128,6 +135,11 @@ function App() {
       return
     }
 
+    if (activeToolId === 'rotate' && files.length !== 1) {
+      setProcessError('Rotate PDF requires exactly one PDF file.')
+      return
+    }
+
     const requestedPages = splitMode === 'range' ? splitPages.trim() : ''
 
     if (
@@ -144,9 +156,15 @@ function App() {
     clearResult()
 
     try {
-      const response = activeToolId === 'split'
-        ? await splitPdfFile(files[0].file, requestedPages)
-        : await mergePdfFiles(files.map((item) => item.file))
+      let response
+
+      if (activeToolId === 'split') {
+        response = await splitPdfFile(files[0].file, requestedPages)
+      } else if (activeToolId === 'rotate') {
+        response = await rotatePdfFile(files[0].file, rotation)
+      } else {
+        response = await mergePdfFiles(files.map((item) => item.file))
+      }
 
       const url = URL.createObjectURL(response.blob)
 
@@ -165,10 +183,14 @@ function App() {
     }
   }
 
-  const canProcess = activeToolId === 'split'
-    ? files.length === 1 &&
+  let canProcess = files.length >= 2
+
+  if (activeToolId === 'split') {
+    canProcess = files.length === 1 &&
       (splitMode === 'every-page' || isValidPageRange(splitPages.trim()))
-    : files.length >= 2
+  } else if (activeToolId === 'rotate') {
+    canProcess = files.length === 1
+  }
 
   return (
     <div className="qc-app">
@@ -224,7 +246,7 @@ function App() {
           <UploadFilesPanel
             files={files}
             activeFileId={activeFileId}
-            multiple={activeToolId === 'merge'}
+            multiple={!isSingleFileTool}
             onFilesAdded={handleFilesAdded}
             onSelectFile={setActiveFileId}
             onRemoveFile={handleRemoveFile}
@@ -301,6 +323,30 @@ function App() {
                       />
                     </label>
                   ) : null}
+                </fieldset>
+              ) : activeToolId === 'rotate' ? (
+                <fieldset className="qc-tool-options">
+                  <legend>Rotation</legend>
+
+                  {['90', '180', '270'].map((degrees) => (
+                    <label className="qc-radio-option" key={degrees}>
+                      <input
+                        type="radio"
+                        name="rotation"
+                        value={degrees}
+                        checked={rotation === degrees}
+                        onChange={(event) => {
+                          clearResult()
+                          setRotation(event.target.value)
+                        }}
+                        disabled={processing}
+                      />
+                      <span>
+                        <strong>{degrees}° clockwise</strong>
+                        <small>Rotate every page in the document.</small>
+                      </span>
+                    </label>
+                  ))}
                 </fieldset>
               ) : (
                 <p className="qc-muted">

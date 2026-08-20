@@ -100,3 +100,21 @@ export async function splitPdfFile(file, splitPages = '') {
 
   return postPdfTool('split', formData, 'split-pages.zip')
 }
+
+export async function rotatePdfFile(file, rotation = '90') {
+  if (!(file instanceof File)) {
+    throw new TypeError('Rotate PDF requires one valid PDF file.')
+  }
+
+  const normalizedRotation = String(rotation)
+
+  if (!['90', '180', '270'].includes(normalizedRotation)) {
+    throw new RangeError('Rotation must be 90, 180, or 270 degrees.')
+  }
+
+  const formData = new FormData()
+  formData.append('files', file, file.name)
+  formData.append('rotation', normalizedRotation)
+
+  return postPdfTool('rotate', formData, 'rotated.pdf')
+}
