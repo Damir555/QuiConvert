@@ -6,6 +6,15 @@ Thumbs.db
 .vscode/
 .idea/
 
+# Local secrets and environment configuration
+.env
+.env.*
+!.env.example
+
+# JavaScript dependencies
+node_modules/
+**/node_modules/
+
 # Python
 __pycache__/
 *.pyc
@@ -20,3 +29,7 @@ build/
 # Logs
 *.log
 debug.log
+
+# Local development experiments and safety copies
+devkit/
+qc-core-backup/
