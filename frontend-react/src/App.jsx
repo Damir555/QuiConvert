@@ -231,6 +231,7 @@ function App() {
           />
 
           <PdfPreview
+            key={activeFile?.id ?? 'empty-preview'}
             file={activeFile?.file}
             fileCount={files.length}
             processing={processing}

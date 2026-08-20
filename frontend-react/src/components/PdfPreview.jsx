@@ -12,24 +12,16 @@ function PdfPreview({ file, fileCount, processing }) {
   const [pdfDocument, setPdfDocument] = useState(null)
   const [pageNumber, setPageNumber] = useState(1)
   const [pageCount, setPageCount] = useState(0)
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(() => file instanceof File)
   const [error, setError] = useState('')
 
   useEffect(() => {
     let cancelled = false
     let loadedDocument = null
 
-    setPdfDocument(null)
-    setPageNumber(1)
-    setPageCount(0)
-    setError('')
-
     if (!(file instanceof File)) {
-      setLoading(false)
       return undefined
     }
-
-    setLoading(true)
 
     const loadDocument = async () => {
       try {
