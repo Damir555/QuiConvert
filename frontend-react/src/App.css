@@ -345,6 +345,11 @@
   background: #f6f8fb;
 }
 
+.qc-icon-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
 .qc-preview__body {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 250px;
@@ -353,8 +358,10 @@
 
 .qc-preview__stage {
   padding: 30px;
-  display: grid;
-  place-items: center;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  overflow: auto;
   background:
     linear-gradient(45deg, #f2f5f9 25%, transparent 25%),
     linear-gradient(-45deg, #f2f5f9 25%, transparent 25%),
@@ -363,6 +370,33 @@
   background-size: 20px 20px;
   background-position: 0 0, 0 10px, 10px -10px, -10px 0;
   border-right: 1px solid #e5eaf1;
+}
+
+.qc-preview__canvas {
+  display: block;
+  max-width: 100%;
+  height: auto !important;
+  background: #ffffff;
+  border: 1px solid #dce3ec;
+  box-shadow: 0 15px 38px rgba(31, 45, 67, 0.16);
+}
+
+.qc-preview__message {
+  align-self: center;
+  margin: auto;
+  padding: 18px;
+  border: 1px dashed #cdd6e3;
+  border-radius: 12px;
+  color: #7b879d;
+  background: rgba(255, 255, 255, 0.9);
+  text-align: center;
+  font-size: 13px;
+}
+
+.qc-preview__message--error {
+  color: #b42318;
+  border-color: #fecdca;
+  background: #fff5f4;
 }
 
 .qc-paper {

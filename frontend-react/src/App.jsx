@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import './App.css'
+import PdfPreview from './components/PdfPreview.jsx'
 import UploadFilesPanel from './components/UploadFilesPanel.jsx'
 import { mergePdfFiles, splitPdfFile } from './services/pdfApi.js'
 
@@ -40,6 +41,7 @@ function App() {
   const [processError, setProcessError] = useState('')
   const [result, setResult] = useState(null)
   const activeTool = tools.find((tool) => tool.id === activeToolId) ?? tools[0]
+  const activeFile = files.find((item) => item.id === activeFileId) ?? files[0]
 
   useEffect(() => {
     return () => {
@@ -228,43 +230,11 @@ function App() {
             onRemoveFile={handleRemoveFile}
           />
 
-          <section className="qc-panel qc-preview">
-            <div className="qc-panel__header qc-panel__header--row">
-              <div>
-                <p className="qc-eyebrow">Document</p>
-                <h2>Preview</h2>
-              </div>
-              <div className="qc-preview__toolbar">
-                <button type="button" className="qc-icon-button" aria-label="Previous page">←</button>
-                <span>Page 1 of 1</span>
-                <button type="button" className="qc-icon-button" aria-label="Next page">→</button>
-              </div>
-            </div>
-
-            <div className="qc-preview__body">
-              <div className="qc-preview__stage">
-                <div className="qc-paper">
-                  <div className="qc-paper__logo">QuiConvert</div>
-                  <div className="qc-paper__line qc-paper__line--wide" />
-                  <div className="qc-paper__line" />
-                  <div className="qc-paper__line qc-paper__line--short" />
-                  <div className="qc-paper__block" />
-                  <div className="qc-paper__line qc-paper__line--wide" />
-                  <div className="qc-paper__line" />
-                </div>
-              </div>
-
-              <aside className="qc-document-details">
-                <h3>Document details</h3>
-                <dl>
-                  <div><dt>Status</dt><dd>{processing ? 'Processing' : files.length ? 'Ready' : 'Waiting'}</dd></div>
-                  <div><dt>Files</dt><dd>{files.length}</dd></div>
-                  <div><dt>Active</dt><dd>{activeFileId ? 'Selected' : 'None'}</dd></div>
-                  <div><dt>Engine</dt><dd>Flask API</dd></div>
-                </dl>
-              </aside>
-            </div>
-          </section>
+          <PdfPreview
+            file={activeFile?.file}
+            fileCount={files.length}
+            processing={processing}
+          />
 
           <section className="qc-bottom-grid">
             <section className="qc-panel qc-action">
