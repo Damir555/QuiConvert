@@ -4,6 +4,35 @@
   color: #172033;
 }
 
+.qc-app--embedded {
+  min-height: 0;
+  background: transparent;
+}
+
+.qc-embedded-heading {
+  max-width: 1328px;
+  margin: 0 auto;
+  padding: 42px 24px 4px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.qc-embedded-heading h1 {
+  margin: 0;
+  color: #172033;
+  font-size: clamp(28px, 4vw, 40px);
+  line-height: 1.1;
+  letter-spacing: -0.035em;
+}
+
+.qc-embedded-heading > div > p:last-child {
+  margin: 10px 0 0;
+  color: #667085;
+  font-size: 15px;
+}
+
 .qc-topbar {
   height: 72px;
   display: flex;
@@ -89,6 +118,15 @@
   display: grid;
   grid-template-columns: 260px minmax(0, 1fr);
   gap: 20px;
+}
+
+.qc-app--embedded .qc-workspace {
+  max-width: 1328px;
+  padding-top: 24px;
+}
+
+.qc-app--embedded .qc-tools {
+  top: 24px;
 }
 
 .qc-panel {
@@ -624,6 +662,16 @@
 
   .qc-workspace {
     padding: 14px;
+  }
+
+  .qc-embedded-heading {
+    padding: 28px 14px 8px;
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .qc-embedded-heading .qc-button {
+    align-self: flex-start;
   }
 
   .qc-tool-list,

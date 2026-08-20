@@ -35,7 +35,7 @@ function isValidPageRange(value) {
   })
 }
 
-function App() {
+function App({ embedded = false }) {
   const [activeToolId, setActiveToolId] = useState('merge')
   const [files, setFiles] = useState([])
   const [activeFileId, setActiveFileId] = useState(null)
@@ -193,28 +193,46 @@ function App() {
   }
 
   return (
-    <div className="qc-app">
-      <header className="qc-topbar">
-        <div className="qc-brand">
-          <span className="qc-brand__mark" aria-hidden="true">Q</span>
-          <div>
-            <strong className="qc-brand__name">QuiConvert</strong>
-            <span className="qc-brand__tagline">PDF workspace</span>
+    <div className={`qc-app ${embedded ? 'qc-app--embedded' : 'qc-app--standalone'}`}>
+      {!embedded ? (
+        <header className="qc-topbar">
+          <div className="qc-brand">
+            <span className="qc-brand__mark" aria-hidden="true">Q</span>
+            <div>
+              <strong className="qc-brand__name">QuiConvert</strong>
+              <span className="qc-brand__tagline">PDF workspace</span>
+            </div>
           </div>
-        </div>
 
-        <div className="qc-topbar__actions">
-          <span className="qc-env-badge">React migration</span>
+          <div className="qc-topbar__actions">
+            <span className="qc-env-badge">React migration</span>
+            <button
+              type="button"
+              className="qc-button qc-button--ghost"
+              onClick={handleReset}
+              disabled={processing}
+            >
+              Reset
+            </button>
+          </div>
+        </header>
+      ) : (
+        <div className="qc-embedded-heading">
+          <div>
+            <p className="qc-eyebrow">QuiConvert</p>
+            <h1>PDF Tools</h1>
+            <p>Upload, preview, and process PDF files securely.</p>
+          </div>
           <button
             type="button"
             className="qc-button qc-button--ghost"
             onClick={handleReset}
             disabled={processing}
           >
-            Reset
+            Reset workspace
           </button>
         </div>
-      </header>
+      )}
 
       <main className="qc-workspace">
         <aside className="qc-panel qc-tools">

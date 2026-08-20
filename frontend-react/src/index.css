@@ -1,8 +1,9 @@
-* {
+:where(#root, [data-quiconvert-react-root]),
+:where(#root, [data-quiconvert-react-root]) * {
   box-sizing: border-box;
 }
 
-:root {
+:where(#root, [data-quiconvert-react-root]) {
   font-family:
     Inter,
     ui-sans-serif,
@@ -19,31 +20,26 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
-html {
-  min-width: 320px;
-  min-height: 100%;
-  background: #f4f7fb;
-}
-
-body {
+body:has(> #root) {
   margin: 0;
   min-width: 320px;
   min-height: 100vh;
 }
 
-button,
-input,
-select,
-textarea {
+:where(#root, [data-quiconvert-react-root]) :is(button, input, select, textarea) {
   font: inherit;
 }
 
-button:focus-visible,
-a:focus-visible {
+:where(#root, [data-quiconvert-react-root]) :is(button, a):focus-visible {
   outline: 3px solid rgba(21, 94, 239, 0.24);
   outline-offset: 2px;
 }
 
 #root {
   min-height: 100vh;
+}
+
+[data-quiconvert-react-root] {
+  min-height: 0;
+  background: transparent;
 }
