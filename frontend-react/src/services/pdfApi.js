@@ -246,3 +246,14 @@ export async function reversePdfPages(file) {
 
   return postPdfTool('reverse-pages', formData, 'reversed-pages.pdf')
 }
+
+export async function addPdfPageNumbers(file) {
+  if (!(file instanceof File)) {
+    throw new TypeError('Page Numbers requires one valid PDF file.')
+  }
+
+  const formData = new FormData()
+  formData.append('files', file, file.name)
+
+  return postPdfTool('page-numbers', formData, 'numbered-pages.pdf')
+}

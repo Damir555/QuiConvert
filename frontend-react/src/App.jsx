@@ -7,6 +7,7 @@ import PageOrderEditor from './components/PageOrderEditor.jsx'
 import PdfPreview from './components/PdfPreview.jsx'
 import UploadFilesPanel from './components/UploadFilesPanel.jsx'
 import {
+  addPdfPageNumbers,
   compressPdfFile,
   deletePdfPages,
   duplicatePdfPages,
@@ -28,7 +29,7 @@ const tools = [
   { id: 'duplicate', title: 'Duplicate Pages', enabled: true },
   { id: 'extract', title: 'Extract Pages', enabled: true },
   { id: 'reverse', title: 'Reverse Pages', enabled: true },
-  { id: 'page-numbers', title: 'Page Numbers' },
+  { id: 'page-numbers', title: 'Page Numbers', enabled: true },
   { id: 'protect', title: 'Protect PDF' },
   { id: 'unlock', title: 'Unlock PDF' },
   { id: 'watermark', title: 'Watermark PDF' },
@@ -72,6 +73,7 @@ function App({ embedded = false }) {
     'duplicate',
     'extract',
     'reverse',
+    'page-numbers',
   ].includes(activeToolId)
 
   useEffect(() => {
@@ -244,6 +246,11 @@ function App({ embedded = false }) {
       return
     }
 
+    if (activeToolId === 'page-numbers' && files.length !== 1) {
+      setProcessError('Page Numbers requires exactly one PDF file.')
+      return
+    }
+
     const requestedPages = splitMode === 'range' ? splitPages.trim() : ''
 
     if (
@@ -284,6 +291,8 @@ function App({ embedded = false }) {
         response = await extractPdfPages(files[0].file, pagesToExtract)
       } else if (activeToolId === 'reverse') {
         response = await reversePdfPages(files[0].file)
+      } else if (activeToolId === 'page-numbers') {
+        response = await addPdfPageNumbers(files[0].file)
       } else {
         response = await mergePdfFiles(files.map((item) => item.file))
       }
@@ -323,6 +332,8 @@ function App({ embedded = false }) {
   } else if (activeToolId === 'extract') {
     canProcess = files.length === 1 && pagesToExtract.length > 0
   } else if (activeToolId === 'reverse') {
+    canProcess = files.length === 1
+  } else if (activeToolId === 'page-numbers') {
     canProcess = files.length === 1
   }
 
@@ -594,6 +605,18 @@ function App({ embedded = false }) {
                     <strong>Reverse the complete document</strong>
                     <p>
                       The last page becomes the first, and the first page becomes the last.
+                    </p>
+                  </div>
+                </div>
+              ) : activeToolId === 'page-numbers' ? (
+                <div className="qc-page-numbers-summary">
+                  <div className="qc-page-numbers-summary__icon" aria-hidden="true">
+                    123
+                  </div>
+                  <div>
+                    <strong>Add numbers to every page</strong>
+                    <p>
+                      QuiConvert will apply sequential page numbers using the current backend style.
                     </p>
                   </div>
                 </div>
