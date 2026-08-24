@@ -3,6 +3,7 @@ import './App.css'
 import PdfPreview from './components/PdfPreview.jsx'
 import UploadFilesPanel from './components/UploadFilesPanel.jsx'
 import {
+  compressPdfFile,
   mergePdfFiles,
   rotatePdfFile,
   splitPdfFile,
@@ -12,7 +13,7 @@ const tools = [
   { id: 'merge', title: 'Merge PDF', enabled: true },
   { id: 'split', title: 'Split PDF', enabled: true },
   { id: 'rotate', title: 'Rotate PDF', enabled: true },
-  { id: 'compress', title: 'Compress PDF' },
+  { id: 'compress', title: 'Compress PDF', enabled: true },
   { id: 'rearrange', title: 'Rearrange Pages' },
   { id: 'delete', title: 'Delete Pages' },
   { id: 'duplicate', title: 'Duplicate Pages' },
@@ -42,12 +43,13 @@ function App({ embedded = false }) {
   const [splitMode, setSplitMode] = useState('every-page')
   const [splitPages, setSplitPages] = useState('')
   const [rotation, setRotation] = useState('90')
+  const [compressionQuality, setCompressionQuality] = useState('medium')
   const [processing, setProcessing] = useState(false)
   const [processError, setProcessError] = useState('')
   const [result, setResult] = useState(null)
   const activeTool = tools.find((tool) => tool.id === activeToolId) ?? tools[0]
   const activeFile = files.find((item) => item.id === activeFileId) ?? files[0]
-  const isSingleFileTool = activeToolId === 'split' || activeToolId === 'rotate'
+  const isSingleFileTool = ['split', 'rotate', 'compress'].includes(activeToolId)
 
   useEffect(() => {
     return () => {
@@ -112,6 +114,7 @@ function App({ embedded = false }) {
     setSplitMode('every-page')
     setSplitPages('')
     setRotation('90')
+    setCompressionQuality('medium')
     setProcessing(false)
   }
 
@@ -140,6 +143,11 @@ function App({ embedded = false }) {
       return
     }
 
+    if (activeToolId === 'compress' && files.length !== 1) {
+      setProcessError('Compress PDF requires exactly one PDF file.')
+      return
+    }
+
     const requestedPages = splitMode === 'range' ? splitPages.trim() : ''
 
     if (
@@ -162,6 +170,11 @@ function App({ embedded = false }) {
         response = await splitPdfFile(files[0].file, requestedPages)
       } else if (activeToolId === 'rotate') {
         response = await rotatePdfFile(files[0].file, rotation)
+      } else if (activeToolId === 'compress') {
+        response = await compressPdfFile(
+          files[0].file,
+          compressionQuality,
+        )
       } else {
         response = await mergePdfFiles(files.map((item) => item.file))
       }
@@ -188,7 +201,7 @@ function App({ embedded = false }) {
   if (activeToolId === 'split') {
     canProcess = files.length === 1 &&
       (splitMode === 'every-page' || isValidPageRange(splitPages.trim()))
-  } else if (activeToolId === 'rotate') {
+  } else if (activeToolId === 'rotate' || activeToolId === 'compress') {
     canProcess = files.length === 1
   }
 
@@ -362,6 +375,46 @@ function App({ embedded = false }) {
                       <span>
                         <strong>{degrees}° clockwise</strong>
                         <small>Rotate every page in the document.</small>
+                      </span>
+                    </label>
+                  ))}
+                </fieldset>
+              ) : activeToolId === 'compress' ? (
+                <fieldset className="qc-tool-options">
+                  <legend>Compression quality</legend>
+
+                  {[
+                    {
+                      value: 'low',
+                      title: 'Low quality',
+                      description: 'Smallest file size and strongest compression.',
+                    },
+                    {
+                      value: 'medium',
+                      title: 'Medium quality',
+                      description: 'Balanced quality and file size.',
+                    },
+                    {
+                      value: 'high',
+                      title: 'High quality',
+                      description: 'Best visual quality with lighter compression.',
+                    },
+                  ].map((option) => (
+                    <label className="qc-radio-option" key={option.value}>
+                      <input
+                        type="radio"
+                        name="compression-quality"
+                        value={option.value}
+                        checked={compressionQuality === option.value}
+                        onChange={(event) => {
+                          clearResult()
+                          setCompressionQuality(event.target.value)
+                        }}
+                        disabled={processing}
+                      />
+                      <span>
+                        <strong>{option.title}</strong>
+                        <small>{option.description}</small>
                       </span>
                     </label>
                   ))}

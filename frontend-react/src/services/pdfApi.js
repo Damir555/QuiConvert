@@ -118,3 +118,21 @@ export async function rotatePdfFile(file, rotation = '90') {
 
   return postPdfTool('rotate', formData, 'rotated.pdf')
 }
+
+export async function compressPdfFile(file, quality = 'medium') {
+  if (!(file instanceof File)) {
+    throw new TypeError('Compress PDF requires one valid PDF file.')
+  }
+
+  const normalizedQuality = String(quality).toLowerCase()
+
+  if (!['low', 'medium', 'high'].includes(normalizedQuality)) {
+    throw new RangeError('Compression quality must be low, medium, or high.')
+  }
+
+  const formData = new FormData()
+  formData.append('files', file, file.name)
+  formData.append('quality', normalizedQuality)
+
+  return postPdfTool('compress', formData, 'compressed.pdf')
+}
