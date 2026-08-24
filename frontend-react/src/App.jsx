@@ -18,6 +18,7 @@ import {
   reversePdfPages,
   rotatePdfFile,
   splitPdfFile,
+  unlockPdfFile,
 } from './services/pdfApi.js'
 
 const tools = [
@@ -32,7 +33,7 @@ const tools = [
   { id: 'reverse', title: 'Reverse Pages', enabled: true },
   { id: 'page-numbers', title: 'Page Numbers', enabled: true },
   { id: 'protect', title: 'Protect PDF', enabled: true },
-  { id: 'unlock', title: 'Unlock PDF' },
+  { id: 'unlock', title: 'Unlock PDF', enabled: true },
   { id: 'watermark', title: 'Watermark PDF' },
 ]
 
@@ -63,6 +64,8 @@ function App({ embedded = false }) {
   const [protectPassword, setProtectPassword] = useState('')
   const [protectPasswordConfirmation, setProtectPasswordConfirmation] = useState('')
   const [showProtectPassword, setShowProtectPassword] = useState(false)
+  const [unlockPassword, setUnlockPassword] = useState('')
+  const [showUnlockPassword, setShowUnlockPassword] = useState(false)
   const [processing, setProcessing] = useState(false)
   const [processError, setProcessError] = useState('')
   const [result, setResult] = useState(null)
@@ -79,6 +82,7 @@ function App({ embedded = false }) {
     'reverse',
     'page-numbers',
     'protect',
+    'unlock',
   ].includes(activeToolId)
 
   useEffect(() => {
@@ -111,6 +115,8 @@ function App({ embedded = false }) {
     setProtectPassword('')
     setProtectPasswordConfirmation('')
     setShowProtectPassword(false)
+    setUnlockPassword('')
+    setShowUnlockPassword(false)
 
     if (isSingleFileTool) {
       const [firstFile] = incomingFiles
@@ -140,6 +146,8 @@ function App({ embedded = false }) {
     setProtectPassword('')
     setProtectPasswordConfirmation('')
     setShowProtectPassword(false)
+    setUnlockPassword('')
+    setShowUnlockPassword(false)
 
     setFiles((current) => {
       const next = current.filter((item) => item.id !== fileId)
@@ -169,6 +177,8 @@ function App({ embedded = false }) {
     setProtectPassword('')
     setProtectPasswordConfirmation('')
     setShowProtectPassword(false)
+    setUnlockPassword('')
+    setShowUnlockPassword(false)
     setProcessing(false)
   }
 
@@ -184,6 +194,8 @@ function App({ embedded = false }) {
     setProtectPassword('')
     setProtectPasswordConfirmation('')
     setShowProtectPassword(false)
+    setUnlockPassword('')
+    setShowUnlockPassword(false)
     setActiveToolId(toolId)
   }
 
@@ -286,6 +298,16 @@ function App({ embedded = false }) {
       return
     }
 
+    if (activeToolId === 'unlock' && files.length !== 1) {
+      setProcessError('Unlock PDF requires exactly one PDF file.')
+      return
+    }
+
+    if (activeToolId === 'unlock' && unlockPassword.length < 1) {
+      setProcessError('Please enter the PDF password.')
+      return
+    }
+
     const requestedPages = splitMode === 'range' ? splitPages.trim() : ''
 
     if (
@@ -330,6 +352,8 @@ function App({ embedded = false }) {
         response = await addPdfPageNumbers(files[0].file)
       } else if (activeToolId === 'protect') {
         response = await protectPdfFile(files[0].file, protectPassword)
+      } else if (activeToolId === 'unlock') {
+        response = await unlockPdfFile(files[0].file, unlockPassword)
       } else {
         response = await mergePdfFiles(files.map((item) => item.file))
       }
@@ -376,6 +400,8 @@ function App({ embedded = false }) {
     canProcess = files.length === 1 &&
       protectPassword.length >= 4 &&
       protectPassword === protectPasswordConfirmation
+  } else if (activeToolId === 'unlock') {
+    canProcess = files.length === 1 && unlockPassword.length > 0
   }
 
   return (
@@ -721,6 +747,39 @@ function App({ embedded = false }) {
                       Keep this password safe. It is required to open the protected PDF.
                     </p>
                   )}
+                </fieldset>
+              ) : activeToolId === 'unlock' ? (
+                <fieldset className="qc-tool-options qc-password-options">
+                  <legend>Existing PDF password</legend>
+
+                  <label className="qc-field">
+                    <span>Password</span>
+                    <input
+                      type={showUnlockPassword ? 'text' : 'password'}
+                      value={unlockPassword}
+                      autoComplete="current-password"
+                      placeholder="Enter the current PDF password"
+                      onChange={(event) => {
+                        clearResult()
+                        setUnlockPassword(event.target.value)
+                      }}
+                      disabled={processing}
+                    />
+                  </label>
+
+                  <label className="qc-password-toggle">
+                    <input
+                      type="checkbox"
+                      checked={showUnlockPassword}
+                      onChange={(event) => setShowUnlockPassword(event.target.checked)}
+                      disabled={processing}
+                    />
+                    <span>Show password</span>
+                  </label>
+
+                  <p className="qc-password-message">
+                    The password is used only to unlock this processing request.
+                  </p>
                 </fieldset>
               ) : (
                 <p className="qc-muted">

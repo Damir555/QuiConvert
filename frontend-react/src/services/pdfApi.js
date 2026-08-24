@@ -273,3 +273,19 @@ export async function protectPdfFile(file, password) {
 
   return postPdfTool('protect', formData, 'protected.pdf')
 }
+
+export async function unlockPdfFile(file, password) {
+  if (!(file instanceof File)) {
+    throw new TypeError('Unlock PDF requires one valid PDF file.')
+  }
+
+  if (typeof password !== 'string' || password.length < 1) {
+    throw new Error('Please enter the PDF password.')
+  }
+
+  const formData = new FormData()
+  formData.append('files', file, file.name)
+  formData.append('password', password)
+
+  return postPdfTool('unlock', formData, 'unlocked.pdf')
+}
