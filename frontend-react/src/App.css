@@ -813,6 +813,43 @@
   font-weight: 750;
 }
 
+.qc-reverse-summary {
+  margin: 18px 20px 0;
+  padding: 16px;
+  border: 1px solid #dfe6f0;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  background: #fbfcfe;
+}
+
+.qc-reverse-summary__icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  color: #155eef;
+  background: #eaf2ff;
+  font-size: 22px;
+  font-weight: 800;
+}
+
+.qc-reverse-summary strong {
+  display: block;
+  color: #344054;
+  font-size: 13px;
+}
+
+.qc-reverse-summary p {
+  margin: 4px 0 0;
+  color: #667085;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
 @media (max-width: 680px) {
   .qc-page-delete__summary {
     align-items: flex-start;

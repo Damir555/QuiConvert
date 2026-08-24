@@ -13,6 +13,7 @@ import {
   extractPdfPages,
   mergePdfFiles,
   rearrangePdfFile,
+  reversePdfPages,
   rotatePdfFile,
   splitPdfFile,
 } from './services/pdfApi.js'
@@ -26,7 +27,7 @@ const tools = [
   { id: 'delete', title: 'Delete Pages', enabled: true },
   { id: 'duplicate', title: 'Duplicate Pages', enabled: true },
   { id: 'extract', title: 'Extract Pages', enabled: true },
-  { id: 'reverse', title: 'Reverse Pages' },
+  { id: 'reverse', title: 'Reverse Pages', enabled: true },
   { id: 'page-numbers', title: 'Page Numbers' },
   { id: 'protect', title: 'Protect PDF' },
   { id: 'unlock', title: 'Unlock PDF' },
@@ -70,6 +71,7 @@ function App({ embedded = false }) {
     'delete',
     'duplicate',
     'extract',
+    'reverse',
   ].includes(activeToolId)
 
   useEffect(() => {
@@ -237,6 +239,11 @@ function App({ embedded = false }) {
       return
     }
 
+    if (activeToolId === 'reverse' && files.length !== 1) {
+      setProcessError('Reverse Pages requires exactly one PDF file.')
+      return
+    }
+
     const requestedPages = splitMode === 'range' ? splitPages.trim() : ''
 
     if (
@@ -275,6 +282,8 @@ function App({ embedded = false }) {
         )
       } else if (activeToolId === 'extract') {
         response = await extractPdfPages(files[0].file, pagesToExtract)
+      } else if (activeToolId === 'reverse') {
+        response = await reversePdfPages(files[0].file)
       } else {
         response = await mergePdfFiles(files.map((item) => item.file))
       }
@@ -313,6 +322,8 @@ function App({ embedded = false }) {
     canProcess = files.length === 1 && pagesToDuplicate.length > 0
   } else if (activeToolId === 'extract') {
     canProcess = files.length === 1 && pagesToExtract.length > 0
+  } else if (activeToolId === 'reverse') {
+    canProcess = files.length === 1
   }
 
   return (
@@ -574,6 +585,18 @@ function App({ embedded = false }) {
                     disabled={processing}
                   />
                 </fieldset>
+              ) : activeToolId === 'reverse' ? (
+                <div className="qc-reverse-summary">
+                  <div className="qc-reverse-summary__icon" aria-hidden="true">
+                    ⇄
+                  </div>
+                  <div>
+                    <strong>Reverse the complete document</strong>
+                    <p>
+                      The last page becomes the first, and the first page becomes the last.
+                    </p>
+                  </div>
+                </div>
               ) : (
                 <p className="qc-muted">
                   Merge uses the existing QuiConvert Flask endpoint.

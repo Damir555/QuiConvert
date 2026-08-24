@@ -235,3 +235,14 @@ export async function extractPdfPages(file, pages) {
 
   return postPdfTool('extract-pages', formData, 'extracted-pages.pdf')
 }
+
+export async function reversePdfPages(file) {
+  if (!(file instanceof File)) {
+    throw new TypeError('Reverse Pages requires one valid PDF file.')
+  }
+
+  const formData = new FormData()
+  formData.append('files', file, file.name)
+
+  return postPdfTool('reverse-pages', formData, 'reversed-pages.pdf')
+}
