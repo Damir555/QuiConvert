@@ -257,3 +257,19 @@ export async function addPdfPageNumbers(file) {
 
   return postPdfTool('page-numbers', formData, 'numbered-pages.pdf')
 }
+
+export async function protectPdfFile(file, password) {
+  if (!(file instanceof File)) {
+    throw new TypeError('Protect PDF requires one valid PDF file.')
+  }
+
+  if (typeof password !== 'string' || password.length < 4) {
+    throw new Error('Password must contain at least 4 characters.')
+  }
+
+  const formData = new FormData()
+  formData.append('files', file, file.name)
+  formData.append('password', password)
+
+  return postPdfTool('protect', formData, 'protected.pdf')
+}

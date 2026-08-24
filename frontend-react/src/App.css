@@ -887,6 +887,38 @@
   line-height: 1.45;
 }
 
+.qc-password-options {
+  gap: 13px;
+}
+
+.qc-password-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #475467;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.qc-password-toggle input {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  accent-color: #155eef;
+}
+
+.qc-password-message {
+  margin: 0;
+  color: #667085;
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.qc-password-message--error {
+  color: #b42318;
+  font-weight: 700;
+}
+
 @media (max-width: 680px) {
   .qc-page-delete__summary {
     align-items: flex-start;

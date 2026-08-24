@@ -13,6 +13,7 @@ import {
   duplicatePdfPages,
   extractPdfPages,
   mergePdfFiles,
+  protectPdfFile,
   rearrangePdfFile,
   reversePdfPages,
   rotatePdfFile,
@@ -30,7 +31,7 @@ const tools = [
   { id: 'extract', title: 'Extract Pages', enabled: true },
   { id: 'reverse', title: 'Reverse Pages', enabled: true },
   { id: 'page-numbers', title: 'Page Numbers', enabled: true },
-  { id: 'protect', title: 'Protect PDF' },
+  { id: 'protect', title: 'Protect PDF', enabled: true },
   { id: 'unlock', title: 'Unlock PDF' },
   { id: 'watermark', title: 'Watermark PDF' },
 ]
@@ -59,6 +60,9 @@ function App({ embedded = false }) {
   const [deletePageCount, setDeletePageCount] = useState(0)
   const [pagesToDuplicate, setPagesToDuplicate] = useState([])
   const [pagesToExtract, setPagesToExtract] = useState([])
+  const [protectPassword, setProtectPassword] = useState('')
+  const [protectPasswordConfirmation, setProtectPasswordConfirmation] = useState('')
+  const [showProtectPassword, setShowProtectPassword] = useState(false)
   const [processing, setProcessing] = useState(false)
   const [processError, setProcessError] = useState('')
   const [result, setResult] = useState(null)
@@ -74,6 +78,7 @@ function App({ embedded = false }) {
     'extract',
     'reverse',
     'page-numbers',
+    'protect',
   ].includes(activeToolId)
 
   useEffect(() => {
@@ -103,6 +108,9 @@ function App({ embedded = false }) {
     setDeletePageCount(0)
     setPagesToDuplicate([])
     setPagesToExtract([])
+    setProtectPassword('')
+    setProtectPasswordConfirmation('')
+    setShowProtectPassword(false)
 
     if (isSingleFileTool) {
       const [firstFile] = incomingFiles
@@ -129,6 +137,9 @@ function App({ embedded = false }) {
     setDeletePageCount(0)
     setPagesToDuplicate([])
     setPagesToExtract([])
+    setProtectPassword('')
+    setProtectPasswordConfirmation('')
+    setShowProtectPassword(false)
 
     setFiles((current) => {
       const next = current.filter((item) => item.id !== fileId)
@@ -155,6 +166,9 @@ function App({ embedded = false }) {
     setDeletePageCount(0)
     setPagesToDuplicate([])
     setPagesToExtract([])
+    setProtectPassword('')
+    setProtectPasswordConfirmation('')
+    setShowProtectPassword(false)
     setProcessing(false)
   }
 
@@ -167,6 +181,9 @@ function App({ embedded = false }) {
     setDeletePageCount(0)
     setPagesToDuplicate([])
     setPagesToExtract([])
+    setProtectPassword('')
+    setProtectPasswordConfirmation('')
+    setShowProtectPassword(false)
     setActiveToolId(toolId)
   }
 
@@ -251,6 +268,24 @@ function App({ embedded = false }) {
       return
     }
 
+    if (activeToolId === 'protect' && files.length !== 1) {
+      setProcessError('Protect PDF requires exactly one PDF file.')
+      return
+    }
+
+    if (activeToolId === 'protect' && protectPassword.length < 4) {
+      setProcessError('Password must contain at least 4 characters.')
+      return
+    }
+
+    if (
+      activeToolId === 'protect' &&
+      protectPassword !== protectPasswordConfirmation
+    ) {
+      setProcessError('Password confirmation does not match.')
+      return
+    }
+
     const requestedPages = splitMode === 'range' ? splitPages.trim() : ''
 
     if (
@@ -293,6 +328,8 @@ function App({ embedded = false }) {
         response = await reversePdfPages(files[0].file)
       } else if (activeToolId === 'page-numbers') {
         response = await addPdfPageNumbers(files[0].file)
+      } else if (activeToolId === 'protect') {
+        response = await protectPdfFile(files[0].file, protectPassword)
       } else {
         response = await mergePdfFiles(files.map((item) => item.file))
       }
@@ -335,6 +372,10 @@ function App({ embedded = false }) {
     canProcess = files.length === 1
   } else if (activeToolId === 'page-numbers') {
     canProcess = files.length === 1
+  } else if (activeToolId === 'protect') {
+    canProcess = files.length === 1 &&
+      protectPassword.length >= 4 &&
+      protectPassword === protectPasswordConfirmation
   }
 
   return (
@@ -620,6 +661,67 @@ function App({ embedded = false }) {
                     </p>
                   </div>
                 </div>
+              ) : activeToolId === 'protect' ? (
+                <fieldset className="qc-tool-options qc-password-options">
+                  <legend>Document password</legend>
+
+                  <label className="qc-field">
+                    <span>Password</span>
+                    <input
+                      type={showProtectPassword ? 'text' : 'password'}
+                      value={protectPassword}
+                      minLength="4"
+                      autoComplete="new-password"
+                      placeholder="At least 4 characters"
+                      onChange={(event) => {
+                        clearResult()
+                        setProtectPassword(event.target.value)
+                      }}
+                      disabled={processing}
+                    />
+                  </label>
+
+                  <label className="qc-field">
+                    <span>Confirm password</span>
+                    <input
+                      type={showProtectPassword ? 'text' : 'password'}
+                      value={protectPasswordConfirmation}
+                      minLength="4"
+                      autoComplete="new-password"
+                      placeholder="Enter the same password again"
+                      onChange={(event) => {
+                        clearResult()
+                        setProtectPasswordConfirmation(event.target.value)
+                      }}
+                      disabled={processing}
+                    />
+                  </label>
+
+                  <label className="qc-password-toggle">
+                    <input
+                      type="checkbox"
+                      checked={showProtectPassword}
+                      onChange={(event) => setShowProtectPassword(event.target.checked)}
+                      disabled={processing}
+                    />
+                    <span>Show password</span>
+                  </label>
+
+                  {protectPasswordConfirmation &&
+                  protectPassword !== protectPasswordConfirmation ? (
+                    <p className="qc-password-message qc-password-message--error">
+                      Passwords do not match.
+                    </p>
+                  ) : protectPassword.length > 0 && protectPassword.length < 4 ? (
+                    <p className="qc-password-message">
+                      Use at least 4 characters.
+                    </p>
+                  ) : (
+                    <p className="qc-password-message">
+                      Keep this password safe. It is required to open the protected PDF.
+                    </p>
+                  )}
+                </fieldset>
               ) : (
                 <p className="qc-muted">
                   Merge uses the existing QuiConvert Flask endpoint.
