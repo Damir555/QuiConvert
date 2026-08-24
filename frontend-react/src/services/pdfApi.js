@@ -187,3 +187,27 @@ export async function deletePdfPages(file, pages) {
 
   return postPdfTool('delete-pages', formData, 'pages-deleted.pdf')
 }
+
+export async function duplicatePdfPages(file, pages) {
+  if (!(file instanceof File)) {
+    throw new TypeError('Duplicate Pages requires one valid PDF file.')
+  }
+
+  if (!Array.isArray(pages) || pages.length < 1) {
+    throw new Error('Select at least one page to duplicate.')
+  }
+
+  const normalizedPages = [...new Set(pages.map(Number))]
+    .filter((pageNumber) => Number.isInteger(pageNumber) && pageNumber > 0)
+    .sort((a, b) => a - b)
+
+  if (normalizedPages.length !== pages.length) {
+    throw new Error('The page selection contains an invalid page number.')
+  }
+
+  const formData = new FormData()
+  formData.append('files', file, file.name)
+  formData.append('pages', normalizedPages.join(','))
+
+  return postPdfTool('duplicate-pages', formData, 'pages-duplicated.pdf')
+}

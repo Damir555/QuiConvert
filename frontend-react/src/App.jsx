@@ -1,12 +1,14 @@
 import { useEffect, useState } from 'react'
 import './App.css'
 import PageDeleteEditor from './components/PageDeleteEditor.jsx'
+import PageDuplicateEditor from './components/PageDuplicateEditor.jsx'
 import PageOrderEditor from './components/PageOrderEditor.jsx'
 import PdfPreview from './components/PdfPreview.jsx'
 import UploadFilesPanel from './components/UploadFilesPanel.jsx'
 import {
   compressPdfFile,
   deletePdfPages,
+  duplicatePdfPages,
   mergePdfFiles,
   rearrangePdfFile,
   rotatePdfFile,
@@ -20,7 +22,7 @@ const tools = [
   { id: 'compress', title: 'Compress PDF', enabled: true },
   { id: 'rearrange', title: 'Rearrange Pages', enabled: true },
   { id: 'delete', title: 'Delete Pages', enabled: true },
-  { id: 'duplicate', title: 'Duplicate Pages' },
+  { id: 'duplicate', title: 'Duplicate Pages', enabled: true },
   { id: 'extract', title: 'Extract Pages' },
   { id: 'reverse', title: 'Reverse Pages' },
   { id: 'page-numbers', title: 'Page Numbers' },
@@ -51,6 +53,7 @@ function App({ embedded = false }) {
   const [pageOrder, setPageOrder] = useState([])
   const [pagesToDelete, setPagesToDelete] = useState([])
   const [deletePageCount, setDeletePageCount] = useState(0)
+  const [pagesToDuplicate, setPagesToDuplicate] = useState([])
   const [processing, setProcessing] = useState(false)
   const [processError, setProcessError] = useState('')
   const [result, setResult] = useState(null)
@@ -62,6 +65,7 @@ function App({ embedded = false }) {
     'compress',
     'rearrange',
     'delete',
+    'duplicate',
   ].includes(activeToolId)
 
   useEffect(() => {
@@ -89,6 +93,7 @@ function App({ embedded = false }) {
     setPageOrder([])
     setPagesToDelete([])
     setDeletePageCount(0)
+    setPagesToDuplicate([])
 
     if (isSingleFileTool) {
       const [firstFile] = incomingFiles
@@ -113,6 +118,7 @@ function App({ embedded = false }) {
     setPageOrder([])
     setPagesToDelete([])
     setDeletePageCount(0)
+    setPagesToDuplicate([])
 
     setFiles((current) => {
       const next = current.filter((item) => item.id !== fileId)
@@ -137,6 +143,7 @@ function App({ embedded = false }) {
     setPageOrder([])
     setPagesToDelete([])
     setDeletePageCount(0)
+    setPagesToDuplicate([])
     setProcessing(false)
   }
 
@@ -147,6 +154,7 @@ function App({ embedded = false }) {
     setPageOrder([])
     setPagesToDelete([])
     setDeletePageCount(0)
+    setPagesToDuplicate([])
     setActiveToolId(toolId)
   }
 
@@ -201,6 +209,16 @@ function App({ embedded = false }) {
       return
     }
 
+    if (activeToolId === 'duplicate' && files.length !== 1) {
+      setProcessError('Duplicate Pages requires exactly one PDF file.')
+      return
+    }
+
+    if (activeToolId === 'duplicate' && pagesToDuplicate.length < 1) {
+      setProcessError('Select at least one page to duplicate.')
+      return
+    }
+
     const requestedPages = splitMode === 'range' ? splitPages.trim() : ''
 
     if (
@@ -232,6 +250,11 @@ function App({ embedded = false }) {
         response = await rearrangePdfFile(files[0].file, pageOrder)
       } else if (activeToolId === 'delete') {
         response = await deletePdfPages(files[0].file, pagesToDelete)
+      } else if (activeToolId === 'duplicate') {
+        response = await duplicatePdfPages(
+          files[0].file,
+          pagesToDuplicate,
+        )
       } else {
         response = await mergePdfFiles(files.map((item) => item.file))
       }
@@ -266,6 +289,8 @@ function App({ embedded = false }) {
     canProcess = files.length === 1 &&
       pagesToDelete.length > 0 &&
       pagesToDelete.length < deletePageCount
+  } else if (activeToolId === 'duplicate') {
+    canProcess = files.length === 1 && pagesToDuplicate.length > 0
   }
 
   return (
@@ -502,6 +527,17 @@ function App({ embedded = false }) {
                     selectedPages={pagesToDelete}
                     onSelectedPagesChange={setPagesToDelete}
                     onPageCountChange={setDeletePageCount}
+                    disabled={processing}
+                  />
+                </fieldset>
+              ) : activeToolId === 'duplicate' ? (
+                <fieldset className="qc-tool-options qc-tool-options--wide">
+                  <legend>Pages to duplicate</legend>
+                  <PageDuplicateEditor
+                    key={activeFile?.id ?? 'empty-page-duplicate'}
+                    file={activeFile?.file}
+                    selectedPages={pagesToDuplicate}
+                    onSelectedPagesChange={setPagesToDuplicate}
                     disabled={processing}
                   />
                 </fieldset>
