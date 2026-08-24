@@ -1,5 +1,6 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import * as pdfjsLib from '../../../qc-core/vendor/pdfjs/pdf.mjs'
+import PdfPageThumbnail from './PdfPageThumbnail.jsx'
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
   '../../../qc-core/vendor/pdfjs/pdf.worker.mjs',
@@ -18,48 +19,6 @@ function movePage(order, sourcePage, targetPage) {
   const [movedPage] = next.splice(sourceIndex, 1)
   next.splice(targetIndex, 0, movedPage)
   return next
-}
-
-function PageThumbnail({ pdfDocument, pageNumber }) {
-  const canvasRef = useRef(null)
-
-  useEffect(() => {
-    let cancelled = false
-    let renderTask = null
-
-    const renderThumbnail = async () => {
-      try {
-        const page = await pdfDocument.getPage(pageNumber)
-        if (cancelled || !canvasRef.current) return
-
-        const baseViewport = page.getViewport({ scale: 1 })
-        const scale = 112 / baseViewport.width
-        const viewport = page.getViewport({ scale })
-        const canvas = canvasRef.current
-        const context = canvas.getContext('2d')
-
-        if (!context) return
-
-        canvas.width = Math.ceil(viewport.width)
-        canvas.height = Math.ceil(viewport.height)
-        renderTask = page.render({ canvasContext: context, viewport })
-        await renderTask.promise
-      } catch (error) {
-        if (!cancelled && error?.name !== 'RenderingCancelledException') {
-          console.warn(`Page ${pageNumber} thumbnail could not be rendered.`, error)
-        }
-      }
-    }
-
-    renderThumbnail()
-
-    return () => {
-      cancelled = true
-      renderTask?.cancel()
-    }
-  }, [pdfDocument, pageNumber])
-
-  return <canvas ref={canvasRef} className="qc-page-order__canvas" />
 }
 
 function PageOrderEditor({ file, pageOrder, onPageOrderChange, disabled }) {
@@ -165,7 +124,7 @@ function PageOrderEditor({ file, pageOrder, onPageOrderChange, disabled }) {
             }}
           >
             <div className="qc-page-order__preview">
-              <PageThumbnail
+              <PdfPageThumbnail
                 pdfDocument={pdfDocument}
                 pageNumber={pageNumber}
               />

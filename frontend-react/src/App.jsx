@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react'
 import './App.css'
+import PageDeleteEditor from './components/PageDeleteEditor.jsx'
 import PageOrderEditor from './components/PageOrderEditor.jsx'
 import PdfPreview from './components/PdfPreview.jsx'
 import UploadFilesPanel from './components/UploadFilesPanel.jsx'
 import {
   compressPdfFile,
+  deletePdfPages,
   mergePdfFiles,
   rearrangePdfFile,
   rotatePdfFile,
@@ -17,7 +19,7 @@ const tools = [
   { id: 'rotate', title: 'Rotate PDF', enabled: true },
   { id: 'compress', title: 'Compress PDF', enabled: true },
   { id: 'rearrange', title: 'Rearrange Pages', enabled: true },
-  { id: 'delete', title: 'Delete Pages' },
+  { id: 'delete', title: 'Delete Pages', enabled: true },
   { id: 'duplicate', title: 'Duplicate Pages' },
   { id: 'extract', title: 'Extract Pages' },
   { id: 'reverse', title: 'Reverse Pages' },
@@ -47,6 +49,8 @@ function App({ embedded = false }) {
   const [rotation, setRotation] = useState('90')
   const [compressionQuality, setCompressionQuality] = useState('medium')
   const [pageOrder, setPageOrder] = useState([])
+  const [pagesToDelete, setPagesToDelete] = useState([])
+  const [deletePageCount, setDeletePageCount] = useState(0)
   const [processing, setProcessing] = useState(false)
   const [processError, setProcessError] = useState('')
   const [result, setResult] = useState(null)
@@ -57,6 +61,7 @@ function App({ embedded = false }) {
     'rotate',
     'compress',
     'rearrange',
+    'delete',
   ].includes(activeToolId)
 
   useEffect(() => {
@@ -82,6 +87,8 @@ function App({ embedded = false }) {
 
     clearResult()
     setPageOrder([])
+    setPagesToDelete([])
+    setDeletePageCount(0)
 
     if (isSingleFileTool) {
       const [firstFile] = incomingFiles
@@ -104,6 +111,8 @@ function App({ embedded = false }) {
   const handleRemoveFile = (fileId) => {
     clearResult()
     setPageOrder([])
+    setPagesToDelete([])
+    setDeletePageCount(0)
 
     setFiles((current) => {
       const next = current.filter((item) => item.id !== fileId)
@@ -126,6 +135,8 @@ function App({ embedded = false }) {
     setRotation('90')
     setCompressionQuality('medium')
     setPageOrder([])
+    setPagesToDelete([])
+    setDeletePageCount(0)
     setProcessing(false)
   }
 
@@ -133,6 +144,9 @@ function App({ embedded = false }) {
     if (processing || toolId === activeToolId) return
 
     clearResult()
+    setPageOrder([])
+    setPagesToDelete([])
+    setDeletePageCount(0)
     setActiveToolId(toolId)
   }
 
@@ -169,6 +183,24 @@ function App({ embedded = false }) {
       return
     }
 
+    if (activeToolId === 'delete' && files.length !== 1) {
+      setProcessError('Delete Pages requires exactly one PDF file.')
+      return
+    }
+
+    if (activeToolId === 'delete' && pagesToDelete.length < 1) {
+      setProcessError('Select at least one page to delete.')
+      return
+    }
+
+    if (
+      activeToolId === 'delete' &&
+      pagesToDelete.length >= deletePageCount
+    ) {
+      setProcessError('At least one page must remain in the PDF.')
+      return
+    }
+
     const requestedPages = splitMode === 'range' ? splitPages.trim() : ''
 
     if (
@@ -198,6 +230,8 @@ function App({ embedded = false }) {
         )
       } else if (activeToolId === 'rearrange') {
         response = await rearrangePdfFile(files[0].file, pageOrder)
+      } else if (activeToolId === 'delete') {
+        response = await deletePdfPages(files[0].file, pagesToDelete)
       } else {
         response = await mergePdfFiles(files.map((item) => item.file))
       }
@@ -228,6 +262,10 @@ function App({ embedded = false }) {
     canProcess = files.length === 1
   } else if (activeToolId === 'rearrange') {
     canProcess = files.length === 1 && pageOrder.length > 0
+  } else if (activeToolId === 'delete') {
+    canProcess = files.length === 1 &&
+      pagesToDelete.length > 0 &&
+      pagesToDelete.length < deletePageCount
   }
 
   return (
@@ -452,6 +490,18 @@ function App({ embedded = false }) {
                     file={activeFile?.file}
                     pageOrder={pageOrder}
                     onPageOrderChange={setPageOrder}
+                    disabled={processing}
+                  />
+                </fieldset>
+              ) : activeToolId === 'delete' ? (
+                <fieldset className="qc-tool-options qc-tool-options--wide">
+                  <legend>Pages to delete</legend>
+                  <PageDeleteEditor
+                    key={activeFile?.id ?? 'empty-page-delete'}
+                    file={activeFile?.file}
+                    selectedPages={pagesToDelete}
+                    onSelectedPagesChange={setPagesToDelete}
+                    onPageCountChange={setDeletePageCount}
                     disabled={processing}
                   />
                 </fieldset>

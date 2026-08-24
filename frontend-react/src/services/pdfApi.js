@@ -163,3 +163,27 @@ export async function rearrangePdfFile(file, pageOrder) {
 
   return postPdfTool('rearrange', formData, 'rearranged.pdf')
 }
+
+export async function deletePdfPages(file, pages) {
+  if (!(file instanceof File)) {
+    throw new TypeError('Delete Pages requires one valid PDF file.')
+  }
+
+  if (!Array.isArray(pages) || pages.length < 1) {
+    throw new Error('Select at least one page to delete.')
+  }
+
+  const normalizedPages = [...new Set(pages.map(Number))]
+    .filter((pageNumber) => Number.isInteger(pageNumber) && pageNumber > 0)
+    .sort((a, b) => a - b)
+
+  if (normalizedPages.length !== pages.length) {
+    throw new Error('The page selection contains an invalid page number.')
+  }
+
+  const formData = new FormData()
+  formData.append('files', file, file.name)
+  formData.append('pages', normalizedPages.join(','))
+
+  return postPdfTool('delete-pages', formData, 'pages-deleted.pdf')
+}
