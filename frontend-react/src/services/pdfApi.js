@@ -289,3 +289,39 @@ export async function unlockPdfFile(file, password) {
 
   return postPdfTool('unlock', formData, 'unlocked.pdf')
 }
+
+export async function watermarkPdfFile(file, options = {}) {
+  if (!(file instanceof File)) {
+    throw new TypeError('Watermark PDF requires one valid PDF file.')
+  }
+
+  const text = String(options?.text ?? '').trim()
+  const color = String(options?.color ?? 'gray')
+  const size = String(options?.size ?? 'large')
+  const opacity = Number(options?.opacity ?? 0.25)
+
+  if (!text) {
+    throw new Error('Please enter watermark text.')
+  }
+
+  if (!['gray', 'black', 'red'].includes(color)) {
+    throw new Error('Watermark color is invalid.')
+  }
+
+  if (!['small', 'medium', 'large'].includes(size)) {
+    throw new Error('Watermark size is invalid.')
+  }
+
+  if (!Number.isFinite(opacity) || opacity < 0.1 || opacity > 1) {
+    throw new Error('Watermark opacity must be between 10% and 100%.')
+  }
+
+  const formData = new FormData()
+  formData.append('files', file, file.name)
+  formData.append('text', text)
+  formData.append('color', color)
+  formData.append('size', size)
+  formData.append('opacity', String(opacity))
+
+  return postPdfTool('watermark', formData, 'watermarked.pdf')
+}

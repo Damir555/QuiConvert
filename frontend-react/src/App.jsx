@@ -19,6 +19,7 @@ import {
   rotatePdfFile,
   splitPdfFile,
   unlockPdfFile,
+  watermarkPdfFile,
 } from './services/pdfApi.js'
 
 const tools = [
@@ -34,7 +35,7 @@ const tools = [
   { id: 'page-numbers', title: 'Page Numbers', enabled: true },
   { id: 'protect', title: 'Protect PDF', enabled: true },
   { id: 'unlock', title: 'Unlock PDF', enabled: true },
-  { id: 'watermark', title: 'Watermark PDF' },
+  { id: 'watermark', title: 'Watermark PDF', enabled: true },
 ]
 
 function isValidPageRange(value) {
@@ -66,6 +67,10 @@ function App({ embedded = false }) {
   const [showProtectPassword, setShowProtectPassword] = useState(false)
   const [unlockPassword, setUnlockPassword] = useState('')
   const [showUnlockPassword, setShowUnlockPassword] = useState(false)
+  const [watermarkText, setWatermarkText] = useState('')
+  const [watermarkColor, setWatermarkColor] = useState('gray')
+  const [watermarkSize, setWatermarkSize] = useState('large')
+  const [watermarkOpacity, setWatermarkOpacity] = useState(0.25)
   const [processing, setProcessing] = useState(false)
   const [processError, setProcessError] = useState('')
   const [result, setResult] = useState(null)
@@ -83,6 +88,7 @@ function App({ embedded = false }) {
     'page-numbers',
     'protect',
     'unlock',
+    'watermark',
   ].includes(activeToolId)
 
   useEffect(() => {
@@ -117,6 +123,10 @@ function App({ embedded = false }) {
     setShowProtectPassword(false)
     setUnlockPassword('')
     setShowUnlockPassword(false)
+    setWatermarkText('')
+    setWatermarkColor('gray')
+    setWatermarkSize('large')
+    setWatermarkOpacity(0.25)
 
     if (isSingleFileTool) {
       const [firstFile] = incomingFiles
@@ -148,6 +158,10 @@ function App({ embedded = false }) {
     setShowProtectPassword(false)
     setUnlockPassword('')
     setShowUnlockPassword(false)
+    setWatermarkText('')
+    setWatermarkColor('gray')
+    setWatermarkSize('large')
+    setWatermarkOpacity(0.25)
 
     setFiles((current) => {
       const next = current.filter((item) => item.id !== fileId)
@@ -179,6 +193,10 @@ function App({ embedded = false }) {
     setShowProtectPassword(false)
     setUnlockPassword('')
     setShowUnlockPassword(false)
+    setWatermarkText('')
+    setWatermarkColor('gray')
+    setWatermarkSize('large')
+    setWatermarkOpacity(0.25)
     setProcessing(false)
   }
 
@@ -196,6 +214,10 @@ function App({ embedded = false }) {
     setShowProtectPassword(false)
     setUnlockPassword('')
     setShowUnlockPassword(false)
+    setWatermarkText('')
+    setWatermarkColor('gray')
+    setWatermarkSize('large')
+    setWatermarkOpacity(0.25)
     setActiveToolId(toolId)
   }
 
@@ -308,6 +330,16 @@ function App({ embedded = false }) {
       return
     }
 
+    if (activeToolId === 'watermark' && files.length !== 1) {
+      setProcessError('Watermark PDF requires exactly one PDF file.')
+      return
+    }
+
+    if (activeToolId === 'watermark' && !watermarkText.trim()) {
+      setProcessError('Please enter watermark text.')
+      return
+    }
+
     const requestedPages = splitMode === 'range' ? splitPages.trim() : ''
 
     if (
@@ -354,6 +386,13 @@ function App({ embedded = false }) {
         response = await protectPdfFile(files[0].file, protectPassword)
       } else if (activeToolId === 'unlock') {
         response = await unlockPdfFile(files[0].file, unlockPassword)
+      } else if (activeToolId === 'watermark') {
+        response = await watermarkPdfFile(files[0].file, {
+          text: watermarkText,
+          color: watermarkColor,
+          size: watermarkSize,
+          opacity: watermarkOpacity,
+        })
       } else {
         response = await mergePdfFiles(files.map((item) => item.file))
       }
@@ -402,6 +441,8 @@ function App({ embedded = false }) {
       protectPassword === protectPasswordConfirmation
   } else if (activeToolId === 'unlock') {
     canProcess = files.length === 1 && unlockPassword.length > 0
+  } else if (activeToolId === 'watermark') {
+    canProcess = files.length === 1 && Boolean(watermarkText.trim())
   }
 
   return (
@@ -780,6 +821,87 @@ function App({ embedded = false }) {
                   <p className="qc-password-message">
                     The password is used only to unlock this processing request.
                   </p>
+                </fieldset>
+              ) : activeToolId === 'watermark' ? (
+                <fieldset className="qc-tool-options qc-watermark-options">
+                  <legend>Watermark settings</legend>
+
+                  <label className="qc-field">
+                    <span>Watermark text</span>
+                    <input
+                      type="text"
+                      value={watermarkText}
+                      placeholder="Example: CONFIDENTIAL"
+                      onChange={(event) => {
+                        clearResult()
+                        setWatermarkText(event.target.value)
+                      }}
+                      disabled={processing}
+                    />
+                  </label>
+
+                  <div className="qc-option-group">
+                    <span className="qc-option-group__label">Color</span>
+                    <div className="qc-option-group__choices">
+                      {['gray', 'black', 'red'].map((color) => (
+                        <label className="qc-compact-radio" key={color}>
+                          <input
+                            type="radio"
+                            name="watermark-color"
+                            value={color}
+                            checked={watermarkColor === color}
+                            onChange={(event) => {
+                              clearResult()
+                              setWatermarkColor(event.target.value)
+                            }}
+                            disabled={processing}
+                          />
+                          <span>{color[0].toUpperCase() + color.slice(1)}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="qc-option-group">
+                    <span className="qc-option-group__label">Font size</span>
+                    <div className="qc-option-group__choices">
+                      {['small', 'medium', 'large'].map((size) => (
+                        <label className="qc-compact-radio" key={size}>
+                          <input
+                            type="radio"
+                            name="watermark-size"
+                            value={size}
+                            checked={watermarkSize === size}
+                            onChange={(event) => {
+                              clearResult()
+                              setWatermarkSize(event.target.value)
+                            }}
+                            disabled={processing}
+                          />
+                          <span>{size[0].toUpperCase() + size.slice(1)}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+
+                  <label className="qc-range-field">
+                    <span>
+                      Opacity
+                      <output>{Math.round(watermarkOpacity * 100)}%</output>
+                    </span>
+                    <input
+                      type="range"
+                      min="0.1"
+                      max="1"
+                      step="0.05"
+                      value={watermarkOpacity}
+                      onChange={(event) => {
+                        clearResult()
+                        setWatermarkOpacity(Number(event.target.value))
+                      }}
+                      disabled={processing}
+                    />
+                  </label>
                 </fieldset>
               ) : (
                 <p className="qc-muted">
