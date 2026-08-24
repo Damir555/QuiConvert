@@ -1,0 +1,154 @@
+<?php
+
+if (!defined('ABSPATH')) {
+    exit;
+}
+
+class QuiConvert_React_Loader_R15 {
+    const SCRIPT_HANDLE = 'quiconvert-react-app';
+    const SHORTCODE = 'quiconvert_react';
+
+    private $assets_enqueued = false;
+
+    public function init() {
+        add_action('wp_enqueue_scripts', array($this, 'enqueue_for_shortcode_page'));
+        add_shortcode(self::SHORTCODE, array($this, 'render_shortcode'));
+        add_filter('script_loader_tag', array($this, 'mark_entry_as_module'), 10, 2);
+    }
+
+    public function enqueue_for_shortcode_page() {
+        if (!is_singular()) {
+            return;
+        }
+
+        $post = get_queried_object();
+
+        if (!($post instanceof WP_Post) || !has_shortcode($post->post_content, self::SHORTCODE)) {
+            return;
+        }
+
+        $this->enqueue_assets();
+    }
+
+    public function render_shortcode($atts = array()) {
+        $atts = shortcode_atts(
+            array('class' => ''),
+            $atts,
+            self::SHORTCODE
+        );
+
+        if (!$this->enqueue_assets()) {
+            if (current_user_can('manage_options')) {
+                return '<div class="quiconvert-react-error">' .
+                    esc_html__('QuiConvert React build is missing or invalid. Rebuild and reinstall the R15 plugin package.', 'quiconvert-tools') .
+                    '</div>';
+            }
+
+            return '<div class="quiconvert-react-error">' .
+                esc_html__('The PDF workspace is temporarily unavailable.', 'quiconvert-tools') .
+                '</div>';
+        }
+
+        $extra_class = sanitize_html_class($atts['class']);
+        $classes = trim('quiconvert-react-host ' . $extra_class);
+
+        return sprintf(
+            '<div class="%s" data-quiconvert-react-root></div><noscript>%s</noscript>',
+            esc_attr($classes),
+            esc_html__('JavaScript is required to use QuiConvert PDF tools.', 'quiconvert-tools')
+        );
+    }
+
+    public function mark_entry_as_module($tag, $handle) {
+        if ($handle !== self::SCRIPT_HANDLE) {
+            return $tag;
+        }
+
+        $tag = preg_replace('/\s+type=(["\'])[^"\']*\1/i', '', $tag, 1);
+        return preg_replace('/<script\s/i', '<script type="module" ', $tag, 1);
+    }
+
+    private function enqueue_assets() {
+        if ($this->assets_enqueued) {
+            return true;
+        }
+
+        $entry = $this->get_manifest_entry();
+
+        if (!$entry) {
+            return false;
+        }
+
+        $build_url = trailingslashit(QUICONVERT_REACT_URL . 'react-build');
+        $build_dir = trailingslashit(QUICONVERT_REACT_DIR . 'react-build');
+        $css_files = isset($entry['css']) && is_array($entry['css']) ? $entry['css'] : array();
+
+        foreach ($css_files as $index => $css_file) {
+            $relative_file = $this->sanitize_asset_path($css_file);
+
+            if (!$relative_file || !is_file($build_dir . $relative_file)) {
+                return false;
+            }
+
+            wp_enqueue_style(
+                'quiconvert-react-' . $index,
+                $build_url . $relative_file,
+                array(),
+                (string) filemtime($build_dir . $relative_file)
+            );
+        }
+
+        $entry_file = isset($entry['file']) ? $this->sanitize_asset_path($entry['file']) : '';
+
+        if (!$entry_file || !is_file($build_dir . $entry_file)) {
+            return false;
+        }
+
+        wp_enqueue_script(
+            self::SCRIPT_HANDLE,
+            $build_url . $entry_file,
+            array(),
+            (string) filemtime($build_dir . $entry_file),
+            true
+        );
+
+        $this->assets_enqueued = true;
+        return true;
+    }
+
+    private function get_manifest_entry() {
+        $manifest_path = QUICONVERT_REACT_DIR . 'react-build/.vite/manifest.json';
+
+        if (!is_readable($manifest_path)) {
+            return null;
+        }
+
+        $manifest = json_decode(file_get_contents($manifest_path), true);
+
+        if (!is_array($manifest)) {
+            return null;
+        }
+
+        foreach ($manifest as $entry) {
+            if (is_array($entry) && !empty($entry['isEntry']) && !empty($entry['file'])) {
+                return $entry;
+            }
+        }
+
+        return null;
+    }
+
+    private function sanitize_asset_path($path) {
+        if (!is_string($path) || $path === '') {
+            return '';
+        }
+
+        $path = ltrim(str_replace('\\', '/', $path), '/');
+
+        if (strpos($path, '../') !== false || strpos($path, '://') !== false) {
+            return '';
+        }
+
+        return $path;
+    }
+}

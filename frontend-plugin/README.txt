@@ -1,13 +1,15 @@
-QuiConvert Plugin 5.1.3
+QuiConvert React Tools R15
 
-Stable Release: CORE-006.5 Event Bus
+Shortcode:
+[quiconvert_react]
 
-Important:
-Deactivate 5.1.2 or RC2 before activating 5.1.3-RC3.
-Keep only one QuiConvert plugin active.
+The React assets are loaded only on a singular WordPress page whose content
+contains this shortcode. Use a Private page for the first deployment test.
 
-Test shortcode:
-[quiconvert_tool action="all"]
+Build the installable plugin ZIP from the repository root:
+powershell -ExecutionPolicy Bypass -File .\scripts\build-plugin-zip.ps1
 
-Developer Mode:
-Open browser console and look for [QC Event].
+Output:
+dist\quiconvert-react-tools-r15.zip
+
+Keep the existing public PDF Tools page unchanged during the R15 test.
