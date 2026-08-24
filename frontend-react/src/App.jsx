@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react'
 import './App.css'
+import PageOrderEditor from './components/PageOrderEditor.jsx'
 import PdfPreview from './components/PdfPreview.jsx'
 import UploadFilesPanel from './components/UploadFilesPanel.jsx'
 import {
   compressPdfFile,
   mergePdfFiles,
+  rearrangePdfFile,
   rotatePdfFile,
   splitPdfFile,
 } from './services/pdfApi.js'
@@ -14,7 +16,7 @@ const tools = [
   { id: 'split', title: 'Split PDF', enabled: true },
   { id: 'rotate', title: 'Rotate PDF', enabled: true },
   { id: 'compress', title: 'Compress PDF', enabled: true },
-  { id: 'rearrange', title: 'Rearrange Pages' },
+  { id: 'rearrange', title: 'Rearrange Pages', enabled: true },
   { id: 'delete', title: 'Delete Pages' },
   { id: 'duplicate', title: 'Duplicate Pages' },
   { id: 'extract', title: 'Extract Pages' },
@@ -44,12 +46,18 @@ function App({ embedded = false }) {
   const [splitPages, setSplitPages] = useState('')
   const [rotation, setRotation] = useState('90')
   const [compressionQuality, setCompressionQuality] = useState('medium')
+  const [pageOrder, setPageOrder] = useState([])
   const [processing, setProcessing] = useState(false)
   const [processError, setProcessError] = useState('')
   const [result, setResult] = useState(null)
   const activeTool = tools.find((tool) => tool.id === activeToolId) ?? tools[0]
   const activeFile = files.find((item) => item.id === activeFileId) ?? files[0]
-  const isSingleFileTool = ['split', 'rotate', 'compress'].includes(activeToolId)
+  const isSingleFileTool = [
+    'split',
+    'rotate',
+    'compress',
+    'rearrange',
+  ].includes(activeToolId)
 
   useEffect(() => {
     return () => {
@@ -73,6 +81,7 @@ function App({ embedded = false }) {
     if (!incomingFiles.length) return
 
     clearResult()
+    setPageOrder([])
 
     if (isSingleFileTool) {
       const [firstFile] = incomingFiles
@@ -94,6 +103,7 @@ function App({ embedded = false }) {
 
   const handleRemoveFile = (fileId) => {
     clearResult()
+    setPageOrder([])
 
     setFiles((current) => {
       const next = current.filter((item) => item.id !== fileId)
@@ -115,6 +125,7 @@ function App({ embedded = false }) {
     setSplitPages('')
     setRotation('90')
     setCompressionQuality('medium')
+    setPageOrder([])
     setProcessing(false)
   }
 
@@ -148,6 +159,16 @@ function App({ embedded = false }) {
       return
     }
 
+    if (activeToolId === 'rearrange' && files.length !== 1) {
+      setProcessError('Rearrange Pages requires exactly one PDF file.')
+      return
+    }
+
+    if (activeToolId === 'rearrange' && pageOrder.length < 1) {
+      setProcessError('Wait for all PDF pages to load before processing.')
+      return
+    }
+
     const requestedPages = splitMode === 'range' ? splitPages.trim() : ''
 
     if (
@@ -175,6 +196,8 @@ function App({ embedded = false }) {
           files[0].file,
           compressionQuality,
         )
+      } else if (activeToolId === 'rearrange') {
+        response = await rearrangePdfFile(files[0].file, pageOrder)
       } else {
         response = await mergePdfFiles(files.map((item) => item.file))
       }
@@ -201,8 +224,10 @@ function App({ embedded = false }) {
   if (activeToolId === 'split') {
     canProcess = files.length === 1 &&
       (splitMode === 'every-page' || isValidPageRange(splitPages.trim()))
-  } else if (activeToolId === 'rotate' || activeToolId === 'compress') {
+  } else if (['rotate', 'compress'].includes(activeToolId)) {
     canProcess = files.length === 1
+  } else if (activeToolId === 'rearrange') {
+    canProcess = files.length === 1 && pageOrder.length > 0
   }
 
   return (
@@ -418,6 +443,17 @@ function App({ embedded = false }) {
                       </span>
                     </label>
                   ))}
+                </fieldset>
+              ) : activeToolId === 'rearrange' ? (
+                <fieldset className="qc-tool-options qc-tool-options--wide">
+                  <legend>Page order</legend>
+                  <PageOrderEditor
+                    key={activeFile?.id ?? 'empty-page-order'}
+                    file={activeFile?.file}
+                    pageOrder={pageOrder}
+                    onPageOrderChange={setPageOrder}
+                    disabled={processing}
+                  />
                 </fieldset>
               ) : (
                 <p className="qc-muted">

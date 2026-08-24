@@ -136,3 +136,30 @@ export async function compressPdfFile(file, quality = 'medium') {
 
   return postPdfTool('compress', formData, 'compressed.pdf')
 }
+
+export async function rearrangePdfFile(file, pageOrder) {
+  if (!(file instanceof File)) {
+    throw new TypeError('Rearrange Pages requires one valid PDF file.')
+  }
+
+  if (!Array.isArray(pageOrder) || pageOrder.length < 1) {
+    throw new Error('A complete page order is required.')
+  }
+
+  const normalizedOrder = pageOrder.map(Number)
+  const uniquePages = new Set(normalizedOrder)
+  const containsEveryPage = normalizedOrder.every(
+    (pageNumber, index) => Number.isInteger(pageNumber) &&
+      pageNumber > 0 && uniquePages.has(index + 1),
+  )
+
+  if (uniquePages.size !== normalizedOrder.length || !containsEveryPage) {
+    throw new Error('Page order must contain every page exactly once.')
+  }
+
+  const formData = new FormData()
+  formData.append('files', file, file.name)
+  formData.append('page_order', normalizedOrder.join(','))
+
+  return postPdfTool('rearrange', formData, 'rearranged.pdf')
+}

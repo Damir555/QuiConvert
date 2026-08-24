@@ -45,7 +45,7 @@ function UploadFilesPanel({
     onFilesAdded(acceptedForTool.map(createFileRecord))
 
     if (!multiple && accepted.length > 1) {
-      setWarning('Split PDF accepts one file. Only the first PDF was added.')
+      setWarning('This PDF tool accepts one file. Only the first PDF was added.')
     } else if (rejectedCount > 0) {
       setWarning(
         rejectedCount === 1
