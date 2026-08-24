@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import './App.css'
 import PageDeleteEditor from './components/PageDeleteEditor.jsx'
 import PageDuplicateEditor from './components/PageDuplicateEditor.jsx'
+import PageExtractEditor from './components/PageExtractEditor.jsx'
 import PageOrderEditor from './components/PageOrderEditor.jsx'
 import PdfPreview from './components/PdfPreview.jsx'
 import UploadFilesPanel from './components/UploadFilesPanel.jsx'
@@ -9,6 +10,7 @@ import {
   compressPdfFile,
   deletePdfPages,
   duplicatePdfPages,
+  extractPdfPages,
   mergePdfFiles,
   rearrangePdfFile,
   rotatePdfFile,
@@ -23,7 +25,7 @@ const tools = [
   { id: 'rearrange', title: 'Rearrange Pages', enabled: true },
   { id: 'delete', title: 'Delete Pages', enabled: true },
   { id: 'duplicate', title: 'Duplicate Pages', enabled: true },
-  { id: 'extract', title: 'Extract Pages' },
+  { id: 'extract', title: 'Extract Pages', enabled: true },
   { id: 'reverse', title: 'Reverse Pages' },
   { id: 'page-numbers', title: 'Page Numbers' },
   { id: 'protect', title: 'Protect PDF' },
@@ -54,6 +56,7 @@ function App({ embedded = false }) {
   const [pagesToDelete, setPagesToDelete] = useState([])
   const [deletePageCount, setDeletePageCount] = useState(0)
   const [pagesToDuplicate, setPagesToDuplicate] = useState([])
+  const [pagesToExtract, setPagesToExtract] = useState([])
   const [processing, setProcessing] = useState(false)
   const [processError, setProcessError] = useState('')
   const [result, setResult] = useState(null)
@@ -66,6 +69,7 @@ function App({ embedded = false }) {
     'rearrange',
     'delete',
     'duplicate',
+    'extract',
   ].includes(activeToolId)
 
   useEffect(() => {
@@ -94,6 +98,7 @@ function App({ embedded = false }) {
     setPagesToDelete([])
     setDeletePageCount(0)
     setPagesToDuplicate([])
+    setPagesToExtract([])
 
     if (isSingleFileTool) {
       const [firstFile] = incomingFiles
@@ -119,6 +124,7 @@ function App({ embedded = false }) {
     setPagesToDelete([])
     setDeletePageCount(0)
     setPagesToDuplicate([])
+    setPagesToExtract([])
 
     setFiles((current) => {
       const next = current.filter((item) => item.id !== fileId)
@@ -144,6 +150,7 @@ function App({ embedded = false }) {
     setPagesToDelete([])
     setDeletePageCount(0)
     setPagesToDuplicate([])
+    setPagesToExtract([])
     setProcessing(false)
   }
 
@@ -155,6 +162,7 @@ function App({ embedded = false }) {
     setPagesToDelete([])
     setDeletePageCount(0)
     setPagesToDuplicate([])
+    setPagesToExtract([])
     setActiveToolId(toolId)
   }
 
@@ -219,6 +227,16 @@ function App({ embedded = false }) {
       return
     }
 
+    if (activeToolId === 'extract' && files.length !== 1) {
+      setProcessError('Extract Pages requires exactly one PDF file.')
+      return
+    }
+
+    if (activeToolId === 'extract' && pagesToExtract.length < 1) {
+      setProcessError('Select at least one page to extract.')
+      return
+    }
+
     const requestedPages = splitMode === 'range' ? splitPages.trim() : ''
 
     if (
@@ -255,6 +273,8 @@ function App({ embedded = false }) {
           files[0].file,
           pagesToDuplicate,
         )
+      } else if (activeToolId === 'extract') {
+        response = await extractPdfPages(files[0].file, pagesToExtract)
       } else {
         response = await mergePdfFiles(files.map((item) => item.file))
       }
@@ -291,6 +311,8 @@ function App({ embedded = false }) {
       pagesToDelete.length < deletePageCount
   } else if (activeToolId === 'duplicate') {
     canProcess = files.length === 1 && pagesToDuplicate.length > 0
+  } else if (activeToolId === 'extract') {
+    canProcess = files.length === 1 && pagesToExtract.length > 0
   }
 
   return (
@@ -538,6 +560,17 @@ function App({ embedded = false }) {
                     file={activeFile?.file}
                     selectedPages={pagesToDuplicate}
                     onSelectedPagesChange={setPagesToDuplicate}
+                    disabled={processing}
+                  />
+                </fieldset>
+              ) : activeToolId === 'extract' ? (
+                <fieldset className="qc-tool-options qc-tool-options--wide">
+                  <legend>Pages to extract</legend>
+                  <PageExtractEditor
+                    key={activeFile?.id ?? 'empty-page-extract'}
+                    file={activeFile?.file}
+                    selectedPages={pagesToExtract}
+                    onSelectedPagesChange={setPagesToExtract}
                     disabled={processing}
                   />
                 </fieldset>

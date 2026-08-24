@@ -211,3 +211,27 @@ export async function duplicatePdfPages(file, pages) {
 
   return postPdfTool('duplicate-pages', formData, 'pages-duplicated.pdf')
 }
+
+export async function extractPdfPages(file, pages) {
+  if (!(file instanceof File)) {
+    throw new TypeError('Extract Pages requires one valid PDF file.')
+  }
+
+  if (!Array.isArray(pages) || pages.length < 1) {
+    throw new Error('Select at least one page to extract.')
+  }
+
+  const normalizedPages = [...new Set(pages.map(Number))]
+    .filter((pageNumber) => Number.isInteger(pageNumber) && pageNumber > 0)
+    .sort((a, b) => a - b)
+
+  if (normalizedPages.length !== pages.length) {
+    throw new Error('The page selection contains an invalid page number.')
+  }
+
+  const formData = new FormData()
+  formData.append('files', file, file.name)
+  formData.append('pages', normalizedPages.join(','))
+
+  return postPdfTool('extract-pages', formData, 'extracted-pages.pdf')
+}
