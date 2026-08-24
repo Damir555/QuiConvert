@@ -3,7 +3,11 @@ import react from '@vitejs/plugin-react'
 import { fileURLToPath, URL } from 'node:url'
 
 export default defineConfig({
+  base: './',
   plugins: [react()],
+  build: {
+    manifest: true,
+  },
   server: {
     fs: {
       allow: [fileURLToPath(new URL('..', import.meta.url))],

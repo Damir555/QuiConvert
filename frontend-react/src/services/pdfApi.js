@@ -1,4 +1,29 @@
-const PDF_API_BASE = '/api/pdf'
+const PDF_API_BASE = (
+  import.meta.env.VITE_PDF_API_BASE || '/api/pdf'
+).replace(/\/+$/, '')
+const SESSION_STORAGE_KEY = 'quiconvertSessionId'
+
+function createSessionId() {
+  if (globalThis.crypto?.randomUUID) {
+    return globalThis.crypto.randomUUID()
+  }
+
+  return `qc-${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`
+}
+
+function getOrCreateSessionId() {
+  try {
+    const storedSessionId = localStorage.getItem(SESSION_STORAGE_KEY)
+
+    if (storedSessionId) return storedSessionId
+
+    const sessionId = createSessionId()
+    localStorage.setItem(SESSION_STORAGE_KEY, sessionId)
+    return sessionId
+  } catch {
+    return createSessionId()
+  }
+}
 
 function getFilenameFromDisposition(value) {
   if (!value) return null
@@ -42,11 +67,14 @@ async function postPdfTool(endpoint, formData, fallbackFilename) {
   try {
     response = await fetch(`${PDF_API_BASE}/${endpoint}`, {
       method: 'POST',
+      headers: {
+        'x-session-id': getOrCreateSessionId(),
+      },
       body: formData,
     })
   } catch (error) {
     throw new Error(
-      'Could not reach the QuiConvert backend. Make sure Flask is running on http://127.0.0.1:5000.',
+      'Could not reach the QuiConvert backend. Confirm the backend URL and that the service is running.',
       { cause: error },
     )
   }

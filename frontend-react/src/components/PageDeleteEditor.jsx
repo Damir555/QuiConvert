@@ -1,11 +1,6 @@
 import { useEffect, useState } from 'react'
-import * as pdfjsLib from '../../../qc-core/vendor/pdfjs/pdf.mjs'
 import PdfPageThumbnail from './PdfPageThumbnail.jsx'
-
-pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
-  '../../../qc-core/vendor/pdfjs/pdf.worker.mjs',
-  import.meta.url,
-).href
+import { loadPdfJs } from '../services/pdfJs.js'
 
 function PageDeleteEditor({
   file,
@@ -27,6 +22,7 @@ function PageDeleteEditor({
 
     const loadDocument = async () => {
       try {
+        const pdfjsLib = await loadPdfJs()
         const data = new Uint8Array(await file.arrayBuffer())
         loadedDocument = await pdfjsLib.getDocument({ data }).promise
 

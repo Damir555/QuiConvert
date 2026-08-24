@@ -1,10 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import * as pdfjsLib from '../../../qc-core/vendor/pdfjs/pdf.mjs'
-
-pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
-  '../../../qc-core/vendor/pdfjs/pdf.worker.mjs',
-  import.meta.url,
-).href
+import { loadPdfJs } from '../services/pdfJs.js'
 
 function PdfPreview({ file, fileCount, processing }) {
   const canvasRef = useRef(null)
@@ -25,6 +20,7 @@ function PdfPreview({ file, fileCount, processing }) {
 
     const loadDocument = async () => {
       try {
+        const pdfjsLib = await loadPdfJs()
         const data = new Uint8Array(await file.arrayBuffer())
         const loadingTask = pdfjsLib.getDocument({ data })
         loadedDocument = await loadingTask.promise
