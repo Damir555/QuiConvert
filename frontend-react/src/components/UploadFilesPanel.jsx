@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useId, useRef, useState } from 'react'
 import { createFileRecord, formatFileSize, isPdfFile } from '../utils/files.js'
 
 function UploadFilesPanel({
@@ -10,6 +10,7 @@ function UploadFilesPanel({
   onRemoveFile,
 }) {
   const inputRef = useRef(null)
+  const inputId = useId()
   const dragDepthRef = useRef(0)
   const [dragActive, setDragActive] = useState(false)
   const [warning, setWarning] = useState('')
@@ -110,16 +111,29 @@ function UploadFilesPanel({
           </h2>
         </div>
 
-        <button
-          type="button"
+        <label
+          htmlFor={inputId}
           className="qc-button qc-button--primary"
-          onClick={() => inputRef.current?.click()}
+          role="button"
+          tabIndex={0}
+          onClick={() => {
+            if (inputRef.current) inputRef.current.value = ''
+          }}
+          onKeyDown={(event) => {
+            if (event.key !== 'Enter' && event.key !== ' ') return
+            event.preventDefault()
+            if (inputRef.current) {
+              inputRef.current.value = ''
+              inputRef.current.click()
+            }
+          }}
         >
           {multiple ? 'Add PDFs' : 'Add PDF'}
-        </button>
+        </label>
       </div>
 
       <input
+        id={inputId}
         ref={inputRef}
         className="qc-visually-hidden"
         type="file"

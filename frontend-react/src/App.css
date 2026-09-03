@@ -248,6 +248,9 @@
   padding: 0 15px;
   border-radius: 10px;
   font-size: 13px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .qc-button--primary {
