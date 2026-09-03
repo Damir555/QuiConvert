@@ -24,6 +24,10 @@ The ZIP contains one top-level `quiconvert-react-tools` directory. The directory
 name intentionally matches the ZIP base name so WordPress preserves the complete
 plugin structure during installation.
 
+The packaging script uses Windows `tar.exe` to write portable forward-slash ZIP
+paths. It then rejects the package if any backslash path is present or if the
+plugin bootstrap, React loader or Vite manifest is missing.
+
 An alternate backend can be selected without editing source files:
 
 ```powershell

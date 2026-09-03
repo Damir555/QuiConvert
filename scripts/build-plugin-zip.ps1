@@ -59,9 +59,38 @@ if (Test-Path $BackupFile) {
 New-Item -ItemType Directory -Path $ReactBuild | Out-Null
 Copy-Item (Join-Path $ReactSource "dist\*") $ReactBuild -Recurse -Force
 
-# Keep one standard top-level plugin directory. Its name matches the ZIP base
-# name so WordPress installs the complete package without adding another level.
-Compress-Archive -Path $PackageRoot -DestinationPath $Zip -Force
+$Tar = Get-Command "tar.exe" -ErrorAction Stop
+
+# Windows Compress-Archive stores backslashes in ZIP entry names. Some Linux
+# hosts treat those as literal filename characters instead of directory
+# separators. bsdtar writes portable forward-slash paths.
+& $Tar.Source -a -c -f $Zip -C $BuildRoot "quiconvert-react-tools"
+
+if ($LASTEXITCODE -ne 0) {
+    throw "Could not create WordPress plugin ZIP."
+}
+
+$Entries = @(& $Tar.Source -tf $Zip)
+
+if ($LASTEXITCODE -ne 0) {
+    throw "Could not inspect WordPress plugin ZIP."
+}
+
+if ($Entries | Where-Object { $_ -match '\\' }) {
+    throw "Plugin ZIP contains non-portable backslash paths."
+}
+
+$RequiredEntries = @(
+    "quiconvert-react-tools/quiconvert-plugin.php",
+    "quiconvert-react-tools/includes/class-react-loader.php",
+    "quiconvert-react-tools/react-build/.vite/manifest.json"
+)
+
+foreach ($RequiredEntry in $RequiredEntries) {
+    if ($Entries -notcontains $RequiredEntry) {
+        throw "Plugin ZIP is missing required entry: $RequiredEntry"
+    }
+}
 
 Write-Host "Built WordPress plugin package:"
 Write-Host $Zip
