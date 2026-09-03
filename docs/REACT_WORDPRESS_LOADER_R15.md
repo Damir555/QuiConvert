@@ -20,6 +20,10 @@ copies the Vite output (including `.vite/manifest.json`) into the plugin and cre
 D:\QuiConvert\dist\quiconvert-react-tools.zip
 ```
 
+The ZIP contains one top-level `quiconvert-react-tools` directory. The directory
+name intentionally matches the ZIP base name so WordPress preserves the complete
+plugin structure during installation.
+
 An alternate backend can be selected without editing source files:
 
 ```powershell

@@ -59,9 +59,9 @@ if (Test-Path $BackupFile) {
 New-Item -ItemType Directory -Path $ReactBuild | Out-Null
 Copy-Item (Join-Path $ReactSource "dist\*") $ReactBuild -Recurse -Force
 
-# WordPress creates the plugin directory from the ZIP filename. Archive only
-# the package contents so the main plugin file is not nested two levels deep.
-Compress-Archive -Path (Join-Path $PackageRoot "*") -DestinationPath $Zip -Force
+# Keep one standard top-level plugin directory. Its name matches the ZIP base
+# name so WordPress installs the complete package without adding another level.
+Compress-Archive -Path $PackageRoot -DestinationPath $Zip -Force
 
 Write-Host "Built WordPress plugin package:"
 Write-Host $Zip
