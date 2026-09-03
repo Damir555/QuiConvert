@@ -17,7 +17,7 @@ The script runs React lint and build, supplies the production Render API address
 copies the Vite output (including `.vite/manifest.json`) into the plugin and creates:
 
 ```text
-D:\QuiConvert\dist\quiconvert-react-tools-r15.zip
+D:\QuiConvert\dist\quiconvert-react-tools.zip
 ```
 
 An alternate backend can be selected without editing source files:
@@ -32,7 +32,7 @@ An alternate backend can be selected without editing source files:
 
 1. Back up the WordPress site and database.
 2. In WordPress open **Plugins > Add New > Upload Plugin**.
-3. Upload `quiconvert-react-tools-r15.zip` and activate **QuiConvert React Tools**.
+3. Upload `quiconvert-react-tools.zip` and activate **QuiConvert React Tools**.
 4. Create a new page named `QuiConvert React Test`.
 5. Set the page visibility to **Private**.
 6. Add a Shortcode block containing `[quiconvert_react]` and publish it privately.
