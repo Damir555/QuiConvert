@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>QuiConvert Core Test</title>
+    <link
+    rel="stylesheet"
+    href="./styles/qc-core.css"
+>
+
+    <link
+    rel="stylesheet"
+    href="./styles/qc-core.css"
+>
+        
+
+</head>
+
+<body>
+
+<div id="quiconvert-app">
+
+    <div class="qc-upload-card">
+        <p><strong>Drag & drop PDF files here</strong></p>
+        <p>or choose files manually</p>
+
+        <input
+            class="qc-file-input"
+            type="file"
+            
+        >
+    </div>
+
+    <div class="qc-file-list-container"></div>
+
+    <div class="qc-tool-options-container"></div>
+
+    <button class="qc-process-button" type="button">
+        Process PDF
+    </button>
+
+    <div class="qc-result-container"></div>
+
+</div>
+
+<script type="module">
+    import { initQuiConvertCore } from './app/main.js';
+
+    initQuiConvertCore({
+        tool: 'pdf-to-images',
+        apiBase: 'http://127.0.0.1:5000',
+        apiKey: 'demo123'
+    });
+</script>
+
+</body>
+</html>

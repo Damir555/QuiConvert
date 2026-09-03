@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1"
+    >
+
+    <title>Workspace Layout Test</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 24px;
+        }
+
+        .qc-workspace__section {
+            border: 2px solid #777;
+            margin-bottom: 20px;
+            padding: 16px;
+        }
+
+        .qc-workspace__zone {
+            border: 1px dashed #999;
+            margin-bottom: 10px;
+            min-height: 50px;
+            padding: 12px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>Workspace Layout Test</h1>
+
+    <div id="workspace-root"></div>
+
+    <script type="module">
+
+    import {
+    WorkspaceEngine
+    } from "../src/workspace/index.js";
+
+    const root = document.querySelector("#workspace-root");
+
+    const workspace = new WorkspaceEngine();
+
+        workspace
+        .initialize()
+        .mount(root);
+
+    const layout = workspace.getLayout();
+
+    const zoneNames = [
+    "upload",
+    "files",
+    "preview",
+    "tool",
+    "action",
+    "status",
+    "result"
+];
+
+        for (const zoneName of zoneNames) {
+
+        layout.getZone(zoneName).textContent =
+        zoneName.toUpperCase() + " ZONE";
+
+}
+
+    console.log(workspace);
+    console.log(layout);
+
+</script>
+
+</body>
+</html>

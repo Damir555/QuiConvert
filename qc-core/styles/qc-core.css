@@ -1,0 +1,330 @@
+.qc-thumbnail-container {
+    display: grid;
+    grid-template-columns: repeat(
+        auto-fill,
+        minmax(150px, 1fr)
+    );
+    gap: 16px;
+    align-items: start;
+}
+
+.qc-thumbnail-card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 10px;
+    border: 2px solid transparent;
+    border-radius: 8px;
+    background: #ffffff;
+    cursor: pointer;
+    transition:
+        border-color 0.15s ease,
+        box-shadow 0.15s ease,
+        transform 0.15s ease,
+        background-color 0.15s ease;
+}
+
+.qc-thumbnail-card:hover {
+    border-color: #9ca3af;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.10);
+    transform: translateY(-1px);
+}
+
+.qc-thumbnail-card:focus-visible {
+    outline: 3px solid #2563eb;
+    outline-offset: 3px;
+}
+
+.qc-thumbnail-card.qc-page-selected {
+    border-color: #dc2626;
+    background: #fef2f2;
+    box-shadow:
+        0 0 0 3px rgba(220, 38, 38, 0.15),
+        0 6px 18px rgba(0, 0, 0, 0.12);
+}
+
+.qc-thumbnail-card.qc-page-selected::after {
+    content: "✓";
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    display: grid;
+    place-items: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: #dc2626;
+    color: #ffffff;
+    font-size: 16px;
+    font-weight: 700;
+}
+
+.qc-thumbnail-card canvas {
+    display: block;
+    max-width: 100%;
+    height: auto;
+    pointer-events: none;
+}
+
+.qc-thumbnail-label {
+    font-size: 14px;
+    font-weight: 600;
+    text-align: center;
+}
+
+.qc-page-selection-output {
+    position: sticky;
+    bottom: 12px;
+    z-index: 10;
+    margin-top: 16px;
+    padding: 12px 14px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.96);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.10);
+    backdrop-filter: blur(4px);
+}
+
+/* =========================================================
+   QuiConvert Core – osnovni izgled aplikacije
+   ========================================================= */
+
+:root {
+    --qc-text: #111827;
+    --qc-muted: #6b7280;
+    --qc-border: #d1d5db;
+    --qc-border-soft: #e5e7eb;
+    --qc-surface: #ffffff;
+    --qc-surface-soft: #f9fafb;
+    --qc-primary: #2563eb;
+    --qc-primary-hover: #1d4ed8;
+    --qc-error: #b91c1c;
+    --qc-success: #15803d;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    padding: 40px 20px;
+    color: var(--qc-text);
+    background: #f3f4f6;
+    font-family:
+        Arial,
+        Helvetica,
+        sans-serif;
+}
+
+#quiconvert-app {
+    width: 100%;
+    max-width: 1100px;
+    margin: 0 auto;
+}
+
+/* Upload područje */
+
+.qc-upload-card {
+    padding: 48px 24px;
+    border: 2px dashed #9ca3af;
+    border-radius: 14px;
+    background: var(--qc-surface);
+    text-align: center;
+    cursor: pointer;
+    transition:
+        border-color 0.15s ease,
+        background-color 0.15s ease,
+        box-shadow 0.15s ease;
+}
+
+.qc-upload-card:hover,
+.qc-upload-card.qc-drag-over {
+    border-color: var(--qc-primary);
+    background: #eff6ff;
+    box-shadow:
+        0 8px 24px rgba(37, 99, 235, 0.10);
+}
+
+.qc-upload-card p {
+    margin: 6px 0;
+}
+
+.qc-file-input {
+    margin-top: 16px;
+    max-width: 100%;
+}
+
+/* Popis učitanih datoteka */
+
+.qc-file-list-container {
+    margin-top: 18px;
+}
+
+.qc-file-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.qc-file-item {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+    padding: 12px 14px;
+    border: 1px solid var(--qc-border-soft);
+    border-radius: 8px;
+    background: var(--qc-surface);
+}
+
+.qc-file-remove {
+    flex: 0 0 auto;
+    padding: 6px 10px;
+    border: 1px solid #fca5a5;
+    border-radius: 6px;
+    background: #fff1f2;
+    color: var(--qc-error);
+    cursor: pointer;
+}
+
+.qc-file-remove:hover {
+    background: #ffe4e6;
+}
+
+/* Opcije alata */
+
+.qc-tool-options-container {
+    margin: 24px 0;
+    padding: 24px;
+    border: 1px solid var(--qc-border-soft);
+    border-radius: 12px;
+    background: var(--qc-surface);
+    box-shadow:
+        0 4px 16px rgba(0, 0, 0, 0.05);
+}
+
+.qc-tool-options h3 {
+    margin-top: 0;
+    margin-bottom: 8px;
+    font-size: 22px;
+}
+
+.qc-tool-options h4 {
+    margin-top: 24px;
+    margin-bottom: 8px;
+}
+
+.qc-tool-options p {
+    color: var(--qc-muted);
+    line-height: 1.5;
+}
+
+/* Statusi */
+
+.qc-page-selection-status,
+.qc-rearrange-status,
+.qc-delete-pages-status,
+.qc-duplicate-pages-status {
+    margin: 14px 0;
+    padding: 10px 12px;
+    border-radius: 7px;
+    background: var(--qc-surface-soft);
+    color: #374151;
+}
+
+.qc-error {
+    border: 1px solid #fecaca;
+    background: #fef2f2;
+    color: var(--qc-error);
+}
+
+/* Glavni procesni gumb */
+
+.qc-process-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 44px;
+    padding: 11px 22px;
+    border: 0;
+    border-radius: 8px;
+    background: var(--qc-primary);
+    color: #ffffff;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    transition:
+        background-color 0.15s ease,
+        transform 0.15s ease,
+        box-shadow 0.15s ease;
+}
+
+.qc-process-button:hover {
+    background: var(--qc-primary-hover);
+    box-shadow:
+        0 6px 16px rgba(37, 99, 235, 0.22);
+    transform: translateY(-1px);
+}
+
+.qc-process-button:focus-visible {
+    outline: 3px solid rgba(37, 99, 235, 0.35);
+    outline-offset: 3px;
+}
+
+.qc-process-button:disabled {
+    opacity: 0.55;
+    cursor: wait;
+    transform: none;
+}
+
+/* Rezultat */
+
+.qc-result-container {
+    margin-top: 20px;
+}
+
+.qc-result-container a {
+    display: inline-flex;
+    padding: 10px 16px;
+    border-radius: 8px;
+    background: var(--qc-success);
+    color: #ffffff;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.qc-result-container a:hover {
+    filter: brightness(0.93);
+}
+
+/* Mobilni prikaz */
+
+@media (max-width: 700px) {
+    body {
+        padding: 20px 12px;
+    }
+
+    .qc-upload-card {
+        padding: 34px 16px;
+    }
+
+    .qc-tool-options-container {
+        padding: 16px;
+    }
+
+    .qc-thumbnail-container {
+        grid-template-columns: repeat(
+            auto-fill,
+            minmax(120px, 1fr)
+        );
+        gap: 10px;
+    }
+
+    .qc-process-button {
+        width: 100%;
+    }
+}

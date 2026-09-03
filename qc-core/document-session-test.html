@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="hr">
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>DocumentSession Selection Test</title>
+
+    <style>
+        body {
+            max-width: 900px;
+            margin: 40px auto;
+            padding: 0 20px;
+
+            font-family:
+                Arial,
+                sans-serif;
+
+            line-height: 1.5;
+
+            background:
+                #f5f5f5;
+
+            color:
+                #222;
+        }
+
+        h1 {
+            margin-bottom: 8px;
+        }
+
+        .summary {
+            margin: 20px 0;
+            padding: 16px;
+
+            border-radius: 8px;
+
+            background:
+                #ffffff;
+        }
+
+        .test {
+            margin-bottom: 10px;
+            padding: 12px 16px;
+
+            border-radius: 6px;
+
+            background:
+                #ffffff;
+        }
+
+        .pass {
+            border-left:
+                6px solid green;
+        }
+
+        .fail {
+            border-left:
+                6px solid red;
+        }
+
+        .label {
+            font-weight: bold;
+        }
+
+        pre {
+            overflow-x: auto;
+
+            padding: 14px;
+
+            border-radius: 6px;
+
+            background:
+                #222;
+
+            color:
+                #f5f5f5;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>DocumentSession Selection Test</h1>
+
+    <p>
+        Ova stranica provjerava Page Operation Selection
+        unutar DocumentSessiona.
+    </p>
+
+    <div
+        id="summary"
+        class="summary"
+    >
+        Testiranje je u tijeku...
+    </div>
+
+    <div id="results"></div>
+
+    <script type="module">
+
+        import {
+            DocumentSession
+        } from "./src/domain/documentSession.js";
+
+        const resultsElement =
+            document.querySelector(
+                "#results"
+            );
+
+        const summaryElement =
+            document.querySelector(
+                "#summary"
+            );
+
+        let passedTests = 0;
+        let failedTests = 0;
+
+        function arraysEqual(
+            firstArray,
+            secondArray
+        ) {
+
+            return (
+                firstArray.length ===
+                    secondArray.length &&
+                firstArray.every(
+                    (value, index) =>
+                        value ===
+                        secondArray[index]
+                )
+            );
+
+        }
+
+        function addResult(
+            name,
+            passed,
+            details = ""
+        ) {
+
+            const resultElement =
+                document.createElement(
+                    "div"
+                );
+
+            resultElement.className =
+                `test ${
+                    passed
+                        ? "pass"
+                        : "fail"
+                }`;
+
+            resultElement.innerHTML = `
+
+                <div class="label">
+
+                    ${
+                        passed
+                            ? "✅ PROŠAO"
+                            : "❌ NIJE PROŠAO"
+                    }
+
+                    — ${name}
+
+                </div>
+
+                ${
+                    details
+                        ? `<pre>${details}</pre>`
+                        : ""
+                }
+
+            `;
+
+            resultsElement.appendChild(
+                resultElement
+            );
+
+            if (passed) {
+                passedTests += 1;
+            } else {
+                failedTests += 1;
+            }
+
+        }
+
+        try {
+
+            const workspaceDocument = {
+                id: "selection-test-document"
+            };
+
+            const session =
+                new DocumentSession(
+                    workspaceDocument
+                );
+
+            session.initializePages(5);
+
+            addResult(
+                "Inicijalizacija pet stranica",
+                session.getPageCount() === 5
+            );
+
+            addResult(
+                "Početna selekcija je prazna",
+                arraysEqual(
+                    session.getSelectedPages(),
+                    []
+                )
+            );
+
+            session.selectPage(2);
+            session.selectPage(4);
+
+            addResult(
+                "Odabir stranica 2 i 4",
+                arraysEqual(
+                    session.getSelectedPages(),
+                    [2, 4]
+                ),
+                JSON.stringify(
+                    session.getSelectedPages()
+                )
+            );
+
+            addResult(
+                "Broj odabranih stranica je 2",
+                session.getSelectionCount() === 2
+            );
+
+            addResult(
+                "Stranica 4 je označena",
+                session.isPageSelected(4) === true
+            );
+
+            addResult(
+                "Stranica 3 nije označena",
+                session.isPageSelected(3) === false
+            );
+
+            session.togglePageSelection(2);
+
+            addResult(
+                "Toggle uklanja stranicu 2",
+                arraysEqual(
+                    session.getSelectedPages(),
+                    [4]
+                ),
+                JSON.stringify(
+                    session.getSelectedPages()
+                )
+            );
+
+            session.togglePageSelection(3);
+
+            addResult(
+                "Toggle dodaje stranicu 3",
+                arraysEqual(
+                    session.getSelectedPages(),
+                    [3, 4]
+                ),
+                JSON.stringify(
+                    session.getSelectedPages()
+                )
+            );
+
+            session.deselectPage(4);
+
+            addResult(
+                "Deselect uklanja stranicu 4",
+                arraysEqual(
+                    session.getSelectedPages(),
+                    [3]
+                ),
+                JSON.stringify(
+                    session.getSelectedPages()
+                )
+            );
+
+            session.selectAllPages();
+
+            addResult(
+                "Select All označava sve stranice",
+                arraysEqual(
+                    session.getSelectedPages(),
+                    [1, 2, 3, 4, 5]
+                ),
+                JSON.stringify(
+                    session.getSelectedPages()
+                )
+            );
+
+            session.clearPageSelection();
+
+            addResult(
+                "Clear uklanja cijelu selekciju",
+                arraysEqual(
+                    session.getSelectedPages(),
+                    []
+                )
+            );
+
+            addResult(
+                "Broj odabranih nakon Clear je 0",
+                session.getSelectionCount() === 0
+            );
+
+            session.selectPage(5);
+            session.initializePages(3);
+
+            addResult(
+                "Ponovna inicijalizacija briše selekciju",
+                arraysEqual(
+                    session.getSelectedPages(),
+                    []
+                )
+            );
+
+            const snapshot =
+                session.getStateSnapshot();
+
+            addResult(
+                "Snapshot sadrži selectedPages",
+                Array.isArray(
+                    snapshot.selectedPages
+                )
+            );
+
+            session.destroy();
+
+            addResult(
+                "Destroy označava session kao uništen",
+                session.isDestroyed() === true
+            );
+
+        } catch (error) {
+
+            addResult(
+                "Neočekivana JavaScript pogreška",
+                false,
+                `${error.name}: ${error.message}`
+            );
+
+        }
+
+        const totalTests =
+            passedTests + failedTests;
+
+        summaryElement.innerHTML = `
+
+            <strong>
+                Rezultat:
+                ${passedTests} / ${totalTests}
+                testova prošlo
+            </strong>
+
+            <br>
+
+            ${
+                failedTests === 0
+                    ? "✅ Selection Engine radi ispravno."
+                    : `❌ Broj neuspješnih testova: ${failedTests}`
+            }
+
+        `;
+
+    </script>
+
+</body>
+</html>

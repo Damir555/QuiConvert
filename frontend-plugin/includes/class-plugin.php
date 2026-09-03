@@ -9,10 +9,12 @@ class QuiConvert_Plugin_512 {
     }
 
     public function enqueue_assets() {
-        wp_enqueue_style('quiconvert-512-style', QUICONVERT_PLUGIN_URL . 'assets/css/quiconvert.css', array(), QUICONVERT_VERSION);
+        wp_enqueue_style('quiconvert-design-system', QUICONVERT_PLUGIN_URL . 'assets/css/design-system.css', array(), QUICONVERT_VERSION);
+        wp_enqueue_style('quiconvert-components', QUICONVERT_PLUGIN_URL . 'assets/css/components.css', array('quiconvert-design-system'), QUICONVERT_VERSION);
+        wp_enqueue_style('quiconvert-512-style', QUICONVERT_PLUGIN_URL . 'assets/css/quiconvert.css', array('quiconvert-components'), QUICONVERT_VERSION);
 
         wp_enqueue_script('quiconvert-512-registry', QUICONVERT_PLUGIN_URL . 'assets/js/registry.js', array(), QUICONVERT_VERSION, true);
-        wp_enqueue_script('quiconvert-512-events', QUICONVERT_PLUGIN_URL . 'assets/js/events.js', array('quiconvert-512-registry'), QUICONVERT_VERSION, true);
+        wp_enqueue_script('quiconvert-512-events', QUICONVERT_PLUGIN_URL . 'assets/js/events.js', array(), QUICONVERT_VERSION, true);
         wp_enqueue_script('quiconvert-512-state', QUICONVERT_PLUGIN_URL . 'assets/js/state.js', array('quiconvert-512-registry'), QUICONVERT_VERSION, true);
         wp_enqueue_script('quiconvert-512-notification', QUICONVERT_PLUGIN_URL . 'assets/js/notification.js', array('quiconvert-512-registry'), QUICONVERT_VERSION, true);
         wp_enqueue_script('quiconvert-512-ui', QUICONVERT_PLUGIN_URL . 'assets/js/ui.js', array('quiconvert-512-registry', 'quiconvert-512-state', 'quiconvert-512-notification'), QUICONVERT_VERSION, true);

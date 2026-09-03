@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>QuiConvert Workspace Template</title>
+    <link rel="stylesheet" href="../styles/workspace-shell.css">
+    <link rel="stylesheet" href="./workspace-dev.css">
+</head>
+<body>
+    <div id="workspace-page-root"></div>
+
+    <script type="module">
+        import { createWorkspaceTemplate } from "../src/templates/workspaceTemplate.js";
+        import mergeWorkspaceSchema from "../src/schemas/mergeWorkspaceSchema.js";
+        import { createWorkspaceApplication } from "../src/workspace/index.js";
+
+        const pageRoot = document.querySelector("#workspace-page-root");
+        const template = createWorkspaceTemplate(pageRoot, mergeWorkspaceSchema);
+        const application = createWorkspaceApplication(
+            template.getWorkspaceMount(),
+            template.getWorkspaceConfig()
+        );
+
+        window.qcWorkspaceTemplate = template;
+        window.qcWorkspaceApplication = application;
+        window.qcWorkspace = application.getEngine();
+
+        console.log("Workspace template initialized:", template);
+        console.log("Workspace application initialized:", application);
+        console.log("Workspace zones:", application.getZones());
+
+        window.addEventListener("beforeunload", () => {
+            application.destroy();
+            template.destroy();
+        }, { once: true });
+    </script>
+</body>
+</html>

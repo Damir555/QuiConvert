@@ -2,7 +2,25 @@
 if (!defined('ABSPATH')) exit;
 
 class QuiConvert_Shortcodes_512 {
-    public static function render_tool($atts = array()) {
+public static function render_upload() {
+    ob_start();
+    ?>
+    <div class="qc-upload-card">
+        <h2>QuiConvert Upload</h2>
+
+        <div class="qc-dropzone">
+            Drag & Drop PDF here
+        </div>
+
+        <button class="qc-button">
+            Choose PDF
+        </button>
+    </div>
+    <?php
+    return ob_get_clean();
+}
+
+public static function render_tool($atts = array()) {
         $atts = shortcode_atts(array(
             'action' => 'all',
             'show_email' => 'false'

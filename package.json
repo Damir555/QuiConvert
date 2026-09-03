@@ -1,0 +1,28 @@
+{
+  "name": "quiconvert",
+  "version": "1.0.0",
+  "description": "Baseline: QuiConvert Plugin 5.1.3 Stable",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+  "build": "vite build",
+  "build:watch": "vite build --watch"
+
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Damir555/QuiConvert.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Damir555/QuiConvert/issues"
+  },
+  "homepage": "https://github.com/Damir555/QuiConvert#readme",
+  "devDependencies": {
+    "vite": "^8.1.4"
+  }
+}
