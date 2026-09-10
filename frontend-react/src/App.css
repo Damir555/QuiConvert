@@ -890,6 +890,43 @@
   line-height: 1.45;
 }
 
+.qc-flatten-summary {
+  margin: 18px 20px 0;
+  padding: 16px;
+  border: 1px solid #dfe6f0;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  background: #fbfcfe;
+}
+
+.qc-flatten-summary__icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  color: #067647;
+  background: #ecfdf3;
+  font-size: 20px;
+  font-weight: 850;
+}
+
+.qc-flatten-summary strong {
+  display: block;
+  color: #344054;
+  font-size: 13px;
+}
+
+.qc-flatten-summary p {
+  margin: 4px 0 0;
+  color: #667085;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
 .qc-password-options {
   gap: 13px;
 }

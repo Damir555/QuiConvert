@@ -165,6 +165,17 @@ export async function compressPdfFile(file, quality = 'medium') {
   return postPdfTool('compress', formData, 'compressed.pdf')
 }
 
+export async function flattenPdfFile(file) {
+  if (!(file instanceof File)) {
+    throw new TypeError('Flatten PDF requires one valid PDF file.')
+  }
+
+  const formData = new FormData()
+  formData.append('files', file, file.name)
+
+  return postPdfTool('flatten', formData, 'flattened.pdf')
+}
+
 export async function rearrangePdfFile(file, pageOrder) {
   if (!(file instanceof File)) {
     throw new TypeError('Rearrange Pages requires one valid PDF file.')

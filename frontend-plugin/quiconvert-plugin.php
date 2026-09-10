@@ -2,7 +2,7 @@
 /*
 Plugin Name: QuiConvert React Tools
 Description: Loads the QuiConvert React PDF workspace from a Vite production build.
-Version: 8.0.0-r16.1
+Version: 8.0.0-r17
 Author: QuiConvert Team
 Text Domain: quiconvert-tools
 */
@@ -11,7 +11,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-define('QUICONVERT_REACT_VERSION', '8.0.0-r16.1');
+define('QUICONVERT_REACT_VERSION', '8.0.0-r17');
 define('QUICONVERT_REACT_DIR', plugin_dir_path(__FILE__));
 define('QUICONVERT_REACT_URL', plugin_dir_url(__FILE__));
 
