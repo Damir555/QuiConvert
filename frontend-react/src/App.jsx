@@ -51,8 +51,11 @@ function isValidPageRange(value) {
   })
 }
 
-function App({ embedded = false }) {
-  const [activeToolId, setActiveToolId] = useState('merge')
+function App({ embedded = false, initialTool = 'merge' }) {
+  const validInitialTool = tools.some(
+    (tool) => tool.id === initialTool && tool.enabled,
+  ) ? initialTool : 'merge'
+  const [activeToolId, setActiveToolId] = useState(validInitialTool)
   const [files, setFiles] = useState([])
   const [activeFileId, setActiveFileId] = useState(null)
   const [splitMode, setSplitMode] = useState('every-page')

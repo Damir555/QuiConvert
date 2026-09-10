@@ -14,9 +14,10 @@ if (!rootElement) {
 const query = new URLSearchParams(window.location.search)
 const embedded = rootElement.hasAttribute('data-quiconvert-react-root') ||
   query.get('embed') === 'wordpress'
+const initialTool = rootElement.dataset.initialTool || 'merge'
 
 createRoot(rootElement).render(
   <StrictMode>
-    <App embedded={embedded} />
+    <App embedded={embedded} initialTool={initialTool} />
   </StrictMode>,
 )
