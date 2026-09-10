@@ -125,6 +125,11 @@
   padding-top: 24px;
 }
 
+.qc-app--dedicated .qc-workspace {
+  grid-template-columns: minmax(0, 1fr);
+  max-width: 1140px;
+}
+
 .qc-app--embedded .qc-tools {
   top: 24px;
 }
@@ -949,11 +954,13 @@
   letter-spacing: 0.1em;
 }
 
+.qc-seo-intro h1,
 .qc-seo-intro h2,
 .qc-seo-content h2 {
   color: #12213d;
 }
 
+.qc-seo-intro h1,
 .qc-seo-intro h2 {
   margin: 0 0 10px;
   font-size: clamp(2rem, 5vw, 3rem);
@@ -1014,6 +1021,47 @@
 
 .qc-seo-faq p {
   margin-bottom: 0;
+}
+
+.qc-seo-related {
+  width: min(100%, 1140px);
+  margin: 24px auto 0;
+  padding: 26px;
+  border: 1px solid #dbe4f2;
+  border-radius: 18px;
+  background: #f7faff;
+}
+
+.qc-seo-related h2 {
+  margin: 0 0 16px;
+  color: #12213d;
+  font-size: 1.3rem;
+}
+
+.qc-seo-related ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.qc-seo-related a {
+  display: inline-flex;
+  padding: 10px 14px;
+  border: 1px solid #cbd8ee;
+  border-radius: 999px;
+  background: #fff;
+  color: #185ee8;
+  font-weight: 750;
+  text-decoration: none;
+}
+
+.qc-seo-related a:hover,
+.qc-seo-related a:focus-visible {
+  border-color: #185ee8;
+  outline: none;
 }
 
 @media (max-width: 760px) {

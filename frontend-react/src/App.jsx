@@ -51,7 +51,7 @@ function isValidPageRange(value) {
   })
 }
 
-function App({ embedded = false, initialTool = 'merge' }) {
+function App({ embedded = false, initialTool = 'merge', dedicatedTool = false }) {
   const validInitialTool = tools.some(
     (tool) => tool.id === initialTool && tool.enabled,
   ) ? initialTool : 'merge'
@@ -459,7 +459,9 @@ function App({ embedded = false, initialTool = 'merge' }) {
   }
 
   return (
-    <div className={`qc-app ${embedded ? 'qc-app--embedded' : 'qc-app--standalone'}`}>
+    <div
+      className={`qc-app ${embedded ? 'qc-app--embedded' : 'qc-app--standalone'} ${dedicatedTool ? 'qc-app--dedicated' : ''}`}
+    >
       {!embedded ? (
         <header className="qc-topbar">
           <div className="qc-brand">
@@ -501,30 +503,32 @@ function App({ embedded = false, initialTool = 'merge' }) {
       )}
 
       <main className="qc-workspace">
-        <aside className="qc-panel qc-tools">
-          <div className="qc-panel__header">
-            <div>
-              <p className="qc-eyebrow">Workspace</p>
-              <h2>PDF Tools</h2>
+        {!dedicatedTool ? (
+          <aside className="qc-panel qc-tools">
+            <div className="qc-panel__header">
+              <div>
+                <p className="qc-eyebrow">Workspace</p>
+                <h2>PDF Tools</h2>
+              </div>
             </div>
-          </div>
 
-          <div className="qc-tool-list" role="list">
-            {tools.map((tool) => (
-              <button
-                key={tool.id}
-                type="button"
-                className={`qc-tool-item ${tool.id === activeToolId ? 'is-active' : ''}`}
-                disabled={!tool.enabled || processing}
-                title={tool.enabled ? tool.title : 'Not migrated yet'}
-                onClick={() => handleToolChange(tool.id)}
-              >
-                <span className="qc-tool-item__dot" aria-hidden="true" />
-                <span>{tool.title}</span>
-              </button>
-            ))}
-          </div>
-        </aside>
+            <div className="qc-tool-list" role="list">
+              {tools.map((tool) => (
+                <button
+                  key={tool.id}
+                  type="button"
+                  className={`qc-tool-item ${tool.id === activeToolId ? 'is-active' : ''}`}
+                  disabled={!tool.enabled || processing}
+                  title={tool.enabled ? tool.title : 'Not migrated yet'}
+                  onClick={() => handleToolChange(tool.id)}
+                >
+                  <span className="qc-tool-item__dot" aria-hidden="true" />
+                  <span>{tool.title}</span>
+                </button>
+              ))}
+            </div>
+          </aside>
+        ) : null}
 
         <section className="qc-main-column">
           <UploadFilesPanel
