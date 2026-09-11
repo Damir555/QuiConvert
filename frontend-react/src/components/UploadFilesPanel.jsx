@@ -9,7 +9,6 @@ function UploadFilesPanel({
   onSelectFile,
   onRemoveFile,
 }) {
-  const inputRef = useRef(null)
   const dragDepthRef = useRef(0)
   const [dragActive, setDragActive] = useState(false)
   const [warning, setWarning] = useState('')
@@ -57,28 +56,12 @@ function UploadFilesPanel({
     }
   }
 
-  const handleInputChange = (event) => {
-    const selectedFiles = event.currentTarget.files
-    processFiles(selectedFiles)
-    event.target.value = ''
-  }
-
-  const openFilePicker = () => {
-    const input = inputRef.current
-    if (!input) return
+  const handleInput = (event) => {
+    const input = event.currentTarget
+    const selectedFiles = Array.from(input.files ?? [])
 
     input.value = ''
-
-    if (typeof input.showPicker === 'function') {
-      try {
-        input.showPicker()
-        return
-      } catch {
-        // Older embedded browsers can expose showPicker without supporting it.
-      }
-    }
-
-    input.click()
+    processFiles(selectedFiles)
   }
 
   const handleDragEnter = (event) => {
@@ -129,23 +112,23 @@ function UploadFilesPanel({
           </h2>
         </div>
 
-        <button
-          type="button"
-          className="qc-button qc-button--primary"
-          onClick={openFilePicker}
+        <label
+          className="qc-file-picker"
         >
-          {multiple ? 'Add PDFs' : 'Add PDF'}
-        </button>
-      </div>
+          <span className="qc-button qc-button--primary" aria-hidden="true">
+            {multiple ? 'Add PDFs' : 'Add PDF'}
+          </span>
 
-      <input
-        ref={inputRef}
-        className="qc-visually-hidden"
-        type="file"
-        accept="application/pdf,.pdf"
-        multiple={multiple}
-        onChange={handleInputChange}
-      />
+          <input
+            className="qc-file-picker__input"
+            type="file"
+            accept="application/pdf,.pdf"
+            multiple={multiple}
+            aria-label={multiple ? 'Add PDF files' : 'Add a PDF file'}
+            onInput={handleInput}
+          />
+        </label>
+      </div>
 
       <div
         className={`qc-dropzone ${dragActive ? 'is-drag-active' : ''}`}
