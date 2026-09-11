@@ -5,6 +5,7 @@ Shortcode:
 
 SEO-ready Flatten PDF page:
 [quiconvert_flatten_pdf]
+[quiconvert_category_page category="organize"]
 
 SEO-ready page for any supported tool:
 [quiconvert_tool_page tool="merge"]
@@ -19,6 +20,9 @@ renders the visible page title as the only H1, use:
 
 The general shortcode also accepts an initial tool, for example:
 [quiconvert_react tool="flatten"]
+
+SEO category values are organize, optimize, secure, and edit. Category cards
+link only to matching tool pages that are currently published in WordPress.
 
 The React assets are loaded only on a singular WordPress page whose content
 contains this shortcode. Use a Private page for the first deployment test.
