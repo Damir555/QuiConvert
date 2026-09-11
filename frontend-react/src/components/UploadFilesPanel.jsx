@@ -1,4 +1,4 @@
-import { useId, useRef, useState } from 'react'
+import { useRef, useState } from 'react'
 import { createFileRecord, formatFileSize, isPdfFile } from '../utils/files.js'
 
 function UploadFilesPanel({
@@ -10,7 +10,6 @@ function UploadFilesPanel({
   onRemoveFile,
 }) {
   const inputRef = useRef(null)
-  const inputId = useId()
   const dragDepthRef = useRef(0)
   const [dragActive, setDragActive] = useState(false)
   const [warning, setWarning] = useState('')
@@ -59,8 +58,27 @@ function UploadFilesPanel({
   }
 
   const handleInputChange = (event) => {
-    processFiles(event.target.files)
+    const selectedFiles = event.currentTarget.files
+    processFiles(selectedFiles)
     event.target.value = ''
+  }
+
+  const openFilePicker = () => {
+    const input = inputRef.current
+    if (!input) return
+
+    input.value = ''
+
+    if (typeof input.showPicker === 'function') {
+      try {
+        input.showPicker()
+        return
+      } catch {
+        // Older embedded browsers can expose showPicker without supporting it.
+      }
+    }
+
+    input.click()
   }
 
   const handleDragEnter = (event) => {
@@ -111,29 +129,16 @@ function UploadFilesPanel({
           </h2>
         </div>
 
-        <label
-          htmlFor={inputId}
+        <button
+          type="button"
           className="qc-button qc-button--primary"
-          role="button"
-          tabIndex={0}
-          onClick={() => {
-            if (inputRef.current) inputRef.current.value = ''
-          }}
-          onKeyDown={(event) => {
-            if (event.key !== 'Enter' && event.key !== ' ') return
-            event.preventDefault()
-            if (inputRef.current) {
-              inputRef.current.value = ''
-              inputRef.current.click()
-            }
-          }}
+          onClick={openFilePicker}
         >
           {multiple ? 'Add PDFs' : 'Add PDF'}
-        </label>
+        </button>
       </div>
 
       <input
-        id={inputId}
         ref={inputRef}
         className="qc-visually-hidden"
         type="file"

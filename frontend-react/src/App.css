@@ -1450,6 +1450,15 @@
   gap: 12px;
   text-align: left;
   cursor: pointer;
+  color: #172033;
+}
+
+.qc-file-row__select .qc-file-row__content strong {
+  color: #172033 !important;
+}
+
+.qc-file-row__select .qc-file-row__content span {
+  color: #667085 !important;
 }
 
 .qc-file-row__select:hover {
