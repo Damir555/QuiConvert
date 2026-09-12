@@ -100,6 +100,7 @@ class QuiConvert_SEO_Tool_Pages_R18_1 {
             : '';
 
         $related_html = $this->render_related_tools($tool['related'], $tools, $id_prefix);
+        $category_html = $this->render_category_parent($tool_id);
         $schema = array(
             '@context' => 'https://schema.org',
             '@type' => 'FAQPage',
@@ -121,7 +122,8 @@ class QuiConvert_SEO_Tool_Pages_R18_1 {
                     '<section aria-labelledby="%2$s-faq"><h2 id="%2$s-faq">%15$s</h2>%16$s</section>' .
                 '</div>' .
                 '%17$s' .
-                '<script type="application/ld+json">%18$s</script>' .
+                '%18$s' .
+                '<script type="application/ld+json">%19$s</script>' .
             '</section>',
             esc_attr($tool_id),
             esc_attr($id_prefix),
@@ -139,9 +141,55 @@ class QuiConvert_SEO_Tool_Pages_R18_1 {
             $privacy_link,
             esc_html__('Frequently asked questions', 'quiconvert-tools'),
             $faq_html,
+            $category_html,
             $related_html,
             wp_json_encode($schema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP)
         );
+    }
+
+    private function render_category_parent($tool_id) {
+        $categories = array(
+            'organize' => array(
+                'title' => 'Organize PDF tools',
+                'slugs' => array('organize-pdf'),
+                'tools' => array('merge', 'split', 'rearrange', 'delete', 'duplicate', 'extract', 'reverse'),
+            ),
+            'optimize' => array(
+                'title' => 'Optimize PDF tools',
+                'slugs' => array('optimize-pdf'),
+                'tools' => array('compress', 'flatten'),
+            ),
+            'secure' => array(
+                'title' => 'Secure PDF tools',
+                'slugs' => array('secure-pdf'),
+                'tools' => array('protect', 'unlock', 'watermark'),
+            ),
+            'edit' => array(
+                'title' => 'Edit PDF tools',
+                'slugs' => array('edit-pdf'),
+                'tools' => array('rotate', 'page-numbers'),
+            ),
+        );
+
+        foreach ($categories as $category) {
+            if (!in_array($tool_id, $category['tools'], true)) {
+                continue;
+            }
+
+            $url = $this->find_published_page_url($category['slugs']);
+            if (!$url) {
+                return '';
+            }
+
+            return sprintf(
+                '<nav class="qc-seo-parent" aria-label="%1$s"><a href="%2$s"><span aria-hidden="true">&larr;</span> %3$s</a></nav>',
+                esc_attr__('PDF tool category', 'quiconvert-tools'),
+                esc_url($url),
+                esc_html($category['title'])
+            );
+        }
+
+        return '';
     }
 
     private function render_related_tools($related_ids, $tools, $id_prefix) {

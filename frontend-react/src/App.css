@@ -1032,6 +1032,25 @@
   background: #f7faff;
 }
 
+.qc-seo-parent {
+  width: min(100%, 1140px);
+  margin: 24px auto 0;
+}
+
+.qc-seo-parent a {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #185ee8;
+  font-weight: 750;
+  text-decoration: none;
+}
+
+.qc-seo-parent a:hover,
+.qc-seo-parent a:focus-visible {
+  text-decoration: underline;
+}
+
 .qc-seo-related h2 {
   margin: 0 0 16px;
   color: #12213d;
