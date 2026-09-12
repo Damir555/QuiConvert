@@ -24,8 +24,13 @@ The general shortcode also accepts an initial tool, for example:
 SEO category values are organize, optimize, secure, and edit. Category cards
 link only to matching tool pages that are currently published in WordPress.
 
-The React assets are loaded only on a singular WordPress page whose content
-contains this shortcode. Use a Private page for the first deployment test.
+Published posts in the PDF Guides category automatically receive the shared
+QuiConvert guide layout and related-tool links. No article shortcode is needed.
+
+The React workspace assets are loaded only on a singular WordPress page whose
+content contains a QuiConvert shortcode. PDF Guides posts load the shared CSS
+without loading the React application script. Use a Private page for the first
+deployment test.
 
 Build the installable plugin ZIP from the repository root:
 powershell -ExecutionPolicy Bypass -File .\scripts\build-plugin-zip.ps1

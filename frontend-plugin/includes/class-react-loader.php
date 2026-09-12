@@ -8,10 +8,12 @@ class QuiConvert_React_Loader_R15 {
     const SCRIPT_HANDLE = 'quiconvert-react-app';
     const SHORTCODE = 'quiconvert_react';
 
-    private $assets_enqueued = false;
+    private $styles_enqueued = false;
+    private $script_enqueued = false;
     private $seo_pages;
     private $seo_categories;
     private $seo_blog;
+    private $seo_blog_article;
 
     public function init() {
         add_action('wp_enqueue_scripts', array($this, 'enqueue_for_shortcode_page'));
@@ -22,6 +24,8 @@ class QuiConvert_React_Loader_R15 {
         $this->seo_categories->init();
         $this->seo_blog = new QuiConvert_SEO_Blog_Index_R20_3();
         $this->seo_blog->init();
+        $this->seo_blog_article = new QuiConvert_SEO_Blog_Article_R20_4();
+        $this->seo_blog_article->init();
         add_filter('script_loader_tag', array($this, 'mark_entry_as_module'), 10, 2);
     }
 
@@ -32,11 +36,18 @@ class QuiConvert_React_Loader_R15 {
 
         $post = get_queried_object();
 
-        if (!($post instanceof WP_Post) || (!$this->post_uses_react($post))) {
+        if (!($post instanceof WP_Post)) {
             return;
         }
 
-        $this->enqueue_assets();
+        if ($this->post_uses_react($post)) {
+            $this->enqueue_assets();
+            return;
+        }
+
+        if ($post->post_type === 'post' && has_category(QuiConvert_SEO_Blog_Article_R20_4::CATEGORY_SLUG, $post->ID)) {
+            $this->enqueue_styles();
+        }
     }
 
     public function render_shortcode($atts = array()) {
@@ -99,11 +110,49 @@ class QuiConvert_React_Loader_R15 {
     }
 
     private function enqueue_assets() {
-        if ($this->assets_enqueued) {
+        if ($this->script_enqueued) {
             return true;
         }
 
         $entry = $this->get_manifest_entry();
+
+        if (!$entry) {
+            return false;
+        }
+
+        if (!$this->enqueue_styles($entry)) {
+            return false;
+        }
+
+        $build_url = trailingslashit(QUICONVERT_REACT_URL . 'react-build');
+        $build_dir = trailingslashit(QUICONVERT_REACT_DIR . 'react-build');
+
+        $entry_file = isset($entry['file']) ? $this->sanitize_asset_path($entry['file']) : '';
+
+        if (!$entry_file || !is_file($build_dir . $entry_file)) {
+            return false;
+        }
+
+        wp_enqueue_script(
+            self::SCRIPT_HANDLE,
+            $build_url . $entry_file,
+            array(),
+            (string) filemtime($build_dir . $entry_file),
+            true
+        );
+
+        $this->script_enqueued = true;
+        return true;
+    }
+
+    private function enqueue_styles($entry = null) {
+        if ($this->styles_enqueued) {
+            return true;
+        }
+
+        if (!$entry) {
+            $entry = $this->get_manifest_entry();
+        }
 
         if (!$entry) {
             return false;
@@ -128,21 +177,7 @@ class QuiConvert_React_Loader_R15 {
             );
         }
 
-        $entry_file = isset($entry['file']) ? $this->sanitize_asset_path($entry['file']) : '';
-
-        if (!$entry_file || !is_file($build_dir . $entry_file)) {
-            return false;
-        }
-
-        wp_enqueue_script(
-            self::SCRIPT_HANDLE,
-            $build_url . $entry_file,
-            array(),
-            (string) filemtime($build_dir . $entry_file),
-            true
-        );
-
-        $this->assets_enqueued = true;
+        $this->styles_enqueued = true;
         return true;
     }
 
