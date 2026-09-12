@@ -85,6 +85,7 @@ $RequiredEntries = @(
     "quiconvert-react-tools/includes/class-react-loader.php",
     "quiconvert-react-tools/includes/class-seo-tool-pages.php",
     "quiconvert-react-tools/includes/class-seo-category-pages.php",
+    "quiconvert-react-tools/includes/class-seo-blog-index.php",
     "quiconvert-react-tools/react-build/.vite/manifest.json"
 )
 
