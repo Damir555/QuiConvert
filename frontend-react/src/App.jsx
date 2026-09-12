@@ -12,6 +12,7 @@ import {
   deletePdfPages,
   duplicatePdfPages,
   extractPdfPages,
+  flattenPdfFile,
   mergePdfFiles,
   protectPdfFile,
   rearrangePdfFile,
@@ -27,6 +28,7 @@ const tools = [
   { id: 'split', title: 'Split PDF', enabled: true },
   { id: 'rotate', title: 'Rotate PDF', enabled: true },
   { id: 'compress', title: 'Compress PDF', enabled: true },
+  { id: 'flatten', title: 'Flatten PDF', enabled: true },
   { id: 'rearrange', title: 'Rearrange Pages', enabled: true },
   { id: 'delete', title: 'Delete Pages', enabled: true },
   { id: 'duplicate', title: 'Duplicate Pages', enabled: true },
@@ -49,8 +51,11 @@ function isValidPageRange(value) {
   })
 }
 
-function App({ embedded = false }) {
-  const [activeToolId, setActiveToolId] = useState('merge')
+function App({ embedded = false, initialTool = 'merge', dedicatedTool = false }) {
+  const validInitialTool = tools.some(
+    (tool) => tool.id === initialTool && tool.enabled,
+  ) ? initialTool : 'merge'
+  const [activeToolId, setActiveToolId] = useState(validInitialTool)
   const [files, setFiles] = useState([])
   const [activeFileId, setActiveFileId] = useState(null)
   const [splitMode, setSplitMode] = useState('every-page')
@@ -80,6 +85,7 @@ function App({ embedded = false }) {
     'split',
     'rotate',
     'compress',
+    'flatten',
     'rearrange',
     'delete',
     'duplicate',
@@ -244,6 +250,11 @@ function App({ embedded = false }) {
       return
     }
 
+    if (activeToolId === 'flatten' && files.length !== 1) {
+      setProcessError('Flatten PDF requires exactly one PDF file.')
+      return
+    }
+
     if (activeToolId === 'rearrange' && files.length !== 1) {
       setProcessError('Rearrange Pages requires exactly one PDF file.')
       return
@@ -367,6 +378,8 @@ function App({ embedded = false }) {
           files[0].file,
           compressionQuality,
         )
+      } else if (activeToolId === 'flatten') {
+        response = await flattenPdfFile(files[0].file)
       } else if (activeToolId === 'rearrange') {
         response = await rearrangePdfFile(files[0].file, pageOrder)
       } else if (activeToolId === 'delete') {
@@ -419,7 +432,7 @@ function App({ embedded = false }) {
   if (activeToolId === 'split') {
     canProcess = files.length === 1 &&
       (splitMode === 'every-page' || isValidPageRange(splitPages.trim()))
-  } else if (['rotate', 'compress'].includes(activeToolId)) {
+  } else if (['rotate', 'compress', 'flatten'].includes(activeToolId)) {
     canProcess = files.length === 1
   } else if (activeToolId === 'rearrange') {
     canProcess = files.length === 1 && pageOrder.length > 0
@@ -446,7 +459,9 @@ function App({ embedded = false }) {
   }
 
   return (
-    <div className={`qc-app ${embedded ? 'qc-app--embedded' : 'qc-app--standalone'}`}>
+    <div
+      className={`qc-app ${embedded ? 'qc-app--embedded' : 'qc-app--standalone'} ${dedicatedTool ? 'qc-app--dedicated' : ''}`}
+    >
       {!embedded ? (
         <header className="qc-topbar">
           <div className="qc-brand">
@@ -488,30 +503,32 @@ function App({ embedded = false }) {
       )}
 
       <main className="qc-workspace">
-        <aside className="qc-panel qc-tools">
-          <div className="qc-panel__header">
-            <div>
-              <p className="qc-eyebrow">Workspace</p>
-              <h2>PDF Tools</h2>
+        {!dedicatedTool ? (
+          <aside className="qc-panel qc-tools">
+            <div className="qc-panel__header">
+              <div>
+                <p className="qc-eyebrow">Workspace</p>
+                <h2>PDF Tools</h2>
+              </div>
             </div>
-          </div>
 
-          <div className="qc-tool-list" role="list">
-            {tools.map((tool) => (
-              <button
-                key={tool.id}
-                type="button"
-                className={`qc-tool-item ${tool.id === activeToolId ? 'is-active' : ''}`}
-                disabled={!tool.enabled || processing}
-                title={tool.enabled ? tool.title : 'Not migrated yet'}
-                onClick={() => handleToolChange(tool.id)}
-              >
-                <span className="qc-tool-item__dot" aria-hidden="true" />
-                <span>{tool.title}</span>
-              </button>
-            ))}
-          </div>
-        </aside>
+            <div className="qc-tool-list" role="list">
+              {tools.map((tool) => (
+                <button
+                  key={tool.id}
+                  type="button"
+                  className={`qc-tool-item ${tool.id === activeToolId ? 'is-active' : ''}`}
+                  disabled={!tool.enabled || processing}
+                  title={tool.enabled ? tool.title : 'Not migrated yet'}
+                  onClick={() => handleToolChange(tool.id)}
+                >
+                  <span className="qc-tool-item__dot" aria-hidden="true" />
+                  <span>{tool.title}</span>
+                </button>
+              ))}
+            </div>
+          </aside>
+        ) : null}
 
         <section className="qc-main-column">
           <UploadFilesPanel
@@ -670,6 +687,20 @@ function App({ embedded = false }) {
                     disabled={processing}
                   />
                 </fieldset>
+              ) : activeToolId === 'flatten' ? (
+                <div className="qc-flatten-summary">
+                  <div className="qc-flatten-summary__icon" aria-hidden="true">
+                    ✓
+                  </div>
+                  <div>
+                    <strong>Make fields and annotations permanent</strong>
+                    <p>
+                      Entered form values and visible annotations remain on the pages,
+                      but they can no longer be edited. Password-protected PDFs must be
+                      unlocked first.
+                    </p>
+                  </div>
+                </div>
               ) : activeToolId === 'delete' ? (
                 <fieldset className="qc-tool-options qc-tool-options--wide">
                   <legend>Pages to delete</legend>

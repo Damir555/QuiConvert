@@ -1,4 +1,4 @@
-import { useId, useRef, useState } from 'react'
+import { useRef, useState } from 'react'
 import { createFileRecord, formatFileSize, isPdfFile } from '../utils/files.js'
 
 function UploadFilesPanel({
@@ -9,8 +9,6 @@ function UploadFilesPanel({
   onSelectFile,
   onRemoveFile,
 }) {
-  const inputRef = useRef(null)
-  const inputId = useId()
   const dragDepthRef = useRef(0)
   const [dragActive, setDragActive] = useState(false)
   const [warning, setWarning] = useState('')
@@ -58,9 +56,12 @@ function UploadFilesPanel({
     }
   }
 
-  const handleInputChange = (event) => {
-    processFiles(event.target.files)
-    event.target.value = ''
+  const handleInput = (event) => {
+    const input = event.currentTarget
+    const selectedFiles = Array.from(input.files ?? [])
+
+    input.value = ''
+    processFiles(selectedFiles)
   }
 
   const handleDragEnter = (event) => {
@@ -112,35 +113,22 @@ function UploadFilesPanel({
         </div>
 
         <label
-          htmlFor={inputId}
-          className="qc-button qc-button--primary"
-          role="button"
-          tabIndex={0}
-          onClick={() => {
-            if (inputRef.current) inputRef.current.value = ''
-          }}
-          onKeyDown={(event) => {
-            if (event.key !== 'Enter' && event.key !== ' ') return
-            event.preventDefault()
-            if (inputRef.current) {
-              inputRef.current.value = ''
-              inputRef.current.click()
-            }
-          }}
+          className="qc-file-picker"
         >
-          {multiple ? 'Add PDFs' : 'Add PDF'}
+          <span className="qc-button qc-button--primary" aria-hidden="true">
+            {multiple ? 'Add PDFs' : 'Add PDF'}
+          </span>
+
+          <input
+            className="qc-file-picker__input"
+            type="file"
+            accept="application/pdf,.pdf"
+            multiple={multiple}
+            aria-label={multiple ? 'Add PDF files' : 'Add a PDF file'}
+            onInput={handleInput}
+          />
         </label>
       </div>
-
-      <input
-        id={inputId}
-        ref={inputRef}
-        className="qc-visually-hidden"
-        type="file"
-        accept="application/pdf,.pdf"
-        multiple={multiple}
-        onChange={handleInputChange}
-      />
 
       <div
         className={`qc-dropzone ${dragActive ? 'is-drag-active' : ''}`}

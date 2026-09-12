@@ -7,16 +7,33 @@ const rootElement = document.querySelector(
   '[data-quiconvert-react-root], #root',
 )
 
-if (!rootElement) {
-  throw new Error('QuiConvert React root element was not found.')
+const reactRootProperty = '__quiconvertReactRoot'
+
+if (rootElement && !rootElement[reactRootProperty]) {
+  const query = new URLSearchParams(window.location.search)
+  const embedded = rootElement.hasAttribute('data-quiconvert-react-root') ||
+    query.get('embed') === 'wordpress'
+  const initialTool = rootElement.dataset.initialTool || 'merge'
+  const dedicatedTool = rootElement.dataset.dedicatedTool === 'true'
+  const reactRoot = createRoot(rootElement)
+  const app = (
+    <App
+      embedded={embedded}
+      initialTool={initialTool}
+      dedicatedTool={dedicatedTool}
+    />
+  )
+
+  Object.defineProperty(rootElement, reactRootProperty, {
+    value: reactRoot,
+    configurable: false,
+    enumerable: false,
+    writable: false,
+  })
+
+  reactRoot.render(import.meta.env.DEV ? (
+    <StrictMode>
+      {app}
+    </StrictMode>
+  ) : app)
 }
-
-const query = new URLSearchParams(window.location.search)
-const embedded = rootElement.hasAttribute('data-quiconvert-react-root') ||
-  query.get('embed') === 'wordpress'
-
-createRoot(rootElement).render(
-  <StrictMode>
-    <App embedded={embedded} />
-  </StrictMode>,
-)

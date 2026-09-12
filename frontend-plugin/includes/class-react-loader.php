@@ -9,10 +9,13 @@ class QuiConvert_React_Loader_R15 {
     const SHORTCODE = 'quiconvert_react';
 
     private $assets_enqueued = false;
+    private $seo_pages;
 
     public function init() {
         add_action('wp_enqueue_scripts', array($this, 'enqueue_for_shortcode_page'));
         add_shortcode(self::SHORTCODE, array($this, 'render_shortcode'));
+        $this->seo_pages = new QuiConvert_SEO_Tool_Pages_R18_1(array($this, 'render_react_host'));
+        $this->seo_pages->init();
         add_filter('script_loader_tag', array($this, 'mark_entry_as_module'), 10, 2);
     }
 
@@ -23,7 +26,7 @@ class QuiConvert_React_Loader_R15 {
 
         $post = get_queried_object();
 
-        if (!($post instanceof WP_Post) || !has_shortcode($post->post_content, self::SHORTCODE)) {
+        if (!($post instanceof WP_Post) || (!$this->post_uses_react($post))) {
             return;
         }
 
@@ -32,15 +35,23 @@ class QuiConvert_React_Loader_R15 {
 
     public function render_shortcode($atts = array()) {
         $atts = shortcode_atts(
-            array('class' => ''),
+            array(
+                'class' => '',
+                'tool' => 'merge',
+            ),
             $atts,
             self::SHORTCODE
         );
 
+        return $this->render_react_host($atts['class'], $atts['tool']);
+    }
+
+    public function render_react_host($class, $tool, $dedicated = false) {
+
         if (!$this->enqueue_assets()) {
             if (current_user_can('manage_options')) {
                 return '<div class="quiconvert-react-error">' .
-                    esc_html__('QuiConvert React build is missing or invalid. Rebuild and reinstall the R15 plugin package.', 'quiconvert-tools') .
+                    esc_html__('QuiConvert React build is missing or invalid. Rebuild and reinstall the current plugin package.', 'quiconvert-tools') .
                     '</div>';
             }
 
@@ -49,14 +60,24 @@ class QuiConvert_React_Loader_R15 {
                 '</div>';
         }
 
-        $extra_class = sanitize_html_class($atts['class']);
+        $extra_class = sanitize_html_class($class);
         $classes = trim('quiconvert-react-host ' . $extra_class);
+        $allowed_tools = array('merge', 'split', 'rotate', 'compress', 'flatten', 'rearrange', 'delete', 'duplicate', 'extract', 'reverse', 'page-numbers', 'protect', 'unlock', 'watermark');
+        $initial_tool = in_array($tool, $allowed_tools, true) ? $tool : 'merge';
 
         return sprintf(
-            '<div class="%s" data-quiconvert-react-root></div><noscript>%s</noscript>',
+            '<div class="%s" data-quiconvert-react-root data-initial-tool="%s"%s></div><noscript>%s</noscript>',
             esc_attr($classes),
+            esc_attr($initial_tool),
+            $dedicated ? ' data-dedicated-tool="true"' : '',
             esc_html__('JavaScript is required to use QuiConvert PDF tools.', 'quiconvert-tools')
         );
+    }
+
+    private function post_uses_react($post) {
+        return has_shortcode($post->post_content, self::SHORTCODE) ||
+            has_shortcode($post->post_content, QuiConvert_SEO_Tool_Pages_R18_1::SHORTCODE) ||
+            has_shortcode($post->post_content, QuiConvert_SEO_Tool_Pages_R18_1::FLATTEN_ALIAS);
     }
 
     public function mark_entry_as_module($tag, $handle) {
