@@ -6,9 +6,11 @@ if (!defined('ABSPATH')) {
 
 class QuiConvert_SEO_Category_Pages_R19 {
     const SHORTCODE = 'quiconvert_category_page';
+    const DIRECTORY_SHORTCODE = 'quiconvert_tools_directory';
 
     public function init() {
         add_shortcode(self::SHORTCODE, array($this, 'render_shortcode'));
+        add_shortcode(self::DIRECTORY_SHORTCODE, array($this, 'render_directory_shortcode'));
     }
 
     public function render_shortcode($atts = array()) {
@@ -81,6 +83,114 @@ class QuiConvert_SEO_Category_Pages_R19 {
         );
     }
 
+    public function render_directory_shortcode($atts = array()) {
+        $atts = shortcode_atts(array('heading' => 'h2'), $atts, self::DIRECTORY_SHORTCODE);
+        $heading_tag = strtolower($atts['heading']) === 'h1' ? 'h1' : 'h2';
+        $categories = $this->get_categories();
+        $directory_categories = array(
+            'organize' => array(
+                'slugs' => array('organize-pdf'),
+                'title' => 'Organize PDF',
+                'description' => 'Combine files or rearrange, extract, duplicate, reverse, and remove PDF pages.',
+                'link_text' => 'Browse organization tools',
+            ),
+            'optimize' => array(
+                'slugs' => array('optimize-pdf'),
+                'title' => 'Optimize PDF',
+                'description' => 'Reduce file size or turn interactive content into fixed PDF pages.',
+                'link_text' => 'Browse optimization tools',
+            ),
+            'secure' => array(
+                'slugs' => array('secure-pdf'),
+                'title' => 'Secure PDF',
+                'description' => 'Protect, unlock, or visibly watermark PDF documents before sharing.',
+                'link_text' => 'Browse security tools',
+            ),
+            'edit' => array(
+                'slugs' => array('edit-pdf'),
+                'title' => 'Edit PDF',
+                'description' => 'Correct page orientation and add clear, consistent page numbers.',
+                'link_text' => 'Browse editing tools',
+            ),
+        );
+        $category_cards = '';
+        $schema_items = array();
+        $position = 1;
+
+        foreach ($directory_categories as $category_id => $directory_category) {
+            $url = $this->find_published_page_url($directory_category['slugs']);
+            if (!$url || !isset($categories[$category_id])) {
+                continue;
+            }
+
+            $published_count = $this->count_published_tools($categories[$category_id]['tools']);
+            $count_label = sprintf(
+                _n('%s available tool', '%s available tools', $published_count, 'quiconvert-tools'),
+                number_format_i18n($published_count)
+            );
+            $category_cards .= sprintf(
+                '<article class="qc-directory-category qc-directory-category--%1$s"><div class="qc-directory-category__icon" aria-hidden="true">%2$s</div><p class="qc-directory-category__count">%3$s</p><h3><a href="%4$s">%5$s</a></h3><p>%6$s</p><a class="qc-directory-category__link" href="%4$s">%7$s <span aria-hidden="true">&rarr;</span></a></article>',
+                esc_attr($category_id),
+                $this->get_icon_svg($categories[$category_id]['icon']),
+                esc_html($count_label),
+                esc_url($url),
+                esc_html($directory_category['title']),
+                esc_html($directory_category['description']),
+                esc_html($directory_category['link_text'])
+            );
+            $schema_items[] = array(
+                '@type' => 'ListItem',
+                'position' => $position++,
+                'name' => $directory_category['title'],
+                'url' => $url,
+            );
+        }
+
+        $popular_tools = array(
+            array('title' => 'Merge PDF', 'slugs' => array('merge-pdf', 'merge'), 'icon' => 'combine'),
+            array('title' => 'Compress PDF', 'slugs' => array('compress-pdf', 'compress'), 'icon' => 'compress'),
+            array('title' => 'Flatten PDF', 'slugs' => array('flatten-pdf'), 'icon' => 'flatten'),
+            array('title' => 'Protect PDF', 'slugs' => array('protect-pdf', 'protect'), 'icon' => 'lock'),
+            array('title' => 'Add Page Numbers', 'slugs' => array('add-page-numbers-pdf', 'page-numbers'), 'icon' => 'numbers'),
+            array('title' => 'Watermark PDF', 'slugs' => array('watermark-pdf', 'add-watermark-pdf'), 'icon' => 'watermark'),
+        );
+        $popular_links = '';
+
+        foreach ($popular_tools as $tool) {
+            $url = $this->find_published_page_url($tool['slugs']);
+            if (!$url) {
+                continue;
+            }
+
+            $popular_links .= sprintf(
+                '<li><a href="%1$s"><span aria-hidden="true">%2$s</span>%3$s</a></li>',
+                esc_url($url),
+                $this->get_icon_svg($tool['icon']),
+                esc_html($tool['title'])
+            );
+        }
+
+        if (!$category_cards && current_user_can('manage_options')) {
+            $category_cards = '<p class="quiconvert-react-error">' . esc_html__('Publish the PDF category pages to display the directory.', 'quiconvert-tools') . '</p>';
+        }
+
+        $popular_section = $popular_links
+            ? '<section class="qc-directory-popular" aria-labelledby="qc-directory-popular-heading"><div><p class="qc-seo-eyebrow">' . esc_html__('QUICK ACCESS', 'quiconvert-tools') . '</p><h3 id="qc-directory-popular-heading">' . esc_html__('Popular PDF tools', 'quiconvert-tools') . '</h3></div><ul>' . $popular_links . '</ul></section>'
+            : '';
+        $schema = array('@context' => 'https://schema.org', '@type' => 'ItemList', 'itemListElement' => $schema_items);
+
+        return sprintf(
+            '<section class="qc-tools-directory" aria-labelledby="qc-tools-directory-heading"><header class="qc-tools-directory__intro"><p class="qc-seo-eyebrow">%1$s</p><%2$s id="qc-tools-directory-heading">%3$s</%2$s><p>%4$s</p></header><div class="qc-tools-directory__grid">%5$s</div>%6$s<script type="application/ld+json">%7$s</script></section>',
+            esc_html__('EXPLORE QUICONVERT', 'quiconvert-tools'),
+            $heading_tag,
+            esc_html__('Browse PDF tools by category', 'quiconvert-tools'),
+            esc_html__('Start with the result you need. Each category leads to focused PDF tools with clear instructions and direct downloads.', 'quiconvert-tools'),
+            $category_cards,
+            $popular_section,
+            wp_json_encode($schema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP)
+        );
+    }
+
     private function find_published_page_url($slugs) {
         foreach ($slugs as $slug) {
             $page = get_page_by_path($slug, OBJECT, 'page');
@@ -89,6 +199,18 @@ class QuiConvert_SEO_Category_Pages_R19 {
             }
         }
         return '';
+    }
+
+    private function count_published_tools($tools) {
+        $count = 0;
+
+        foreach ($tools as $tool) {
+            if ($this->find_published_page_url($tool['slugs'])) {
+                $count++;
+            }
+        }
+
+        return $count;
     }
 
     private function tool($title, $description, $link_text, $slugs, $icon) {
