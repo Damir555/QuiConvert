@@ -11,6 +11,7 @@ class QuiConvert_React_Loader_R15 {
     private $assets_enqueued = false;
     private $seo_pages;
     private $seo_categories;
+    private $seo_blog;
 
     public function init() {
         add_action('wp_enqueue_scripts', array($this, 'enqueue_for_shortcode_page'));
@@ -19,6 +20,8 @@ class QuiConvert_React_Loader_R15 {
         $this->seo_pages->init();
         $this->seo_categories = new QuiConvert_SEO_Category_Pages_R19();
         $this->seo_categories->init();
+        $this->seo_blog = new QuiConvert_SEO_Blog_Index_R20_3();
+        $this->seo_blog->init();
         add_filter('script_loader_tag', array($this, 'mark_entry_as_module'), 10, 2);
     }
 
@@ -82,7 +85,8 @@ class QuiConvert_React_Loader_R15 {
             has_shortcode($post->post_content, QuiConvert_SEO_Tool_Pages_R18_1::SHORTCODE) ||
             has_shortcode($post->post_content, QuiConvert_SEO_Tool_Pages_R18_1::FLATTEN_ALIAS) ||
             has_shortcode($post->post_content, QuiConvert_SEO_Category_Pages_R19::SHORTCODE) ||
-            has_shortcode($post->post_content, QuiConvert_SEO_Category_Pages_R19::DIRECTORY_SHORTCODE);
+            has_shortcode($post->post_content, QuiConvert_SEO_Category_Pages_R19::DIRECTORY_SHORTCODE) ||
+            has_shortcode($post->post_content, QuiConvert_SEO_Blog_Index_R20_3::SHORTCODE);
     }
 
     public function mark_entry_as_module($tag, $handle) {
