@@ -81,7 +81,8 @@ class QuiConvert_React_Loader_R15 {
         return has_shortcode($post->post_content, self::SHORTCODE) ||
             has_shortcode($post->post_content, QuiConvert_SEO_Tool_Pages_R18_1::SHORTCODE) ||
             has_shortcode($post->post_content, QuiConvert_SEO_Tool_Pages_R18_1::FLATTEN_ALIAS) ||
-            has_shortcode($post->post_content, QuiConvert_SEO_Category_Pages_R19::SHORTCODE);
+            has_shortcode($post->post_content, QuiConvert_SEO_Category_Pages_R19::SHORTCODE) ||
+            has_shortcode($post->post_content, QuiConvert_SEO_Category_Pages_R19::DIRECTORY_SHORTCODE);
     }
 
     public function mark_entry_as_module($tag, $handle) {
